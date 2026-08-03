@@ -26,7 +26,7 @@ class Database extends Config
      */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => '127.0.0.1',
+        'hostname'     => 'sql310.infinityfree.com',
         'username'     => 'root',
         'password'     => '',
         'database'     => 'db_keuangan',

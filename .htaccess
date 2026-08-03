@@ -1,3 +1,4 @@
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^(.*)$ public/$1 [L]
@@ -7,3 +8,5 @@
     Require all denied
     Satisfy All
 </FilesMatch>
+
+
