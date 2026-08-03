@@ -1,5 +1,5 @@
 <?php
-$koneksi = new mysqli("localhost", "root", "", "db_keuangan");
+$koneksi = new mysqli("127.0.0.1", "root", "", "db_keuangan");
 
 // Cek koneksi
 if ($koneksi->connect_error) {

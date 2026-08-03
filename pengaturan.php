@@ -1,5 +1,5 @@
 <?php
-$koneksi = new mysqli("localhost", "root", "", "db_keuangan");
+$koneksi = new mysqli("127.0.0.1", "root", "", "db_keuangan");
 
 // Ambil saldo awal
 $res_saldo = $koneksi->query("SELECT * FROM saldo WHERE id = 1");

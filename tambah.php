@@ -1,5 +1,5 @@
 <?php
-$koneksi = new mysqli("localhost", "root", "", "db_keuangan");
+$koneksi = new mysqli("127.0.0.1", "root", "", "db_keuangan");
 
 $tanggal = $_POST['tanggal'];
 $keterangan = $_POST['keterangan'];

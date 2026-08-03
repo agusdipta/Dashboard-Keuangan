@@ -1,6 +1,6 @@
 <?php
 // Koneksi ke database
-$koneksi = new mysqli("localhost", "root", "", "db_keuangan");
+$koneksi = new mysqli("127.0.0.1", "root", "", "db_keuangan");
 
 // Ambil parameter tanggal
 $tanggal_mulai = $_POST['tanggal_mulai'];
