@@ -58,14 +58,17 @@ $kat_sheet = ambil_kategori($koneksi, $UID);
 
 <nav class="mnav" aria-label="Navigasi utama">
     <a href="index.php" class="mnav-item<?= $AKTIF === 'dashboard' ? ' active' : '' ?>">
-        <i class="fas fa-house"></i><span>Dashboard</span>
+        <i class="fas fa-house"></i><span>Beranda</span>
     </a>
-    <a href="laporan.php" class="mnav-item<?= $AKTIF === 'laporan' ? ' active' : '' ?>">
-        <i class="fas fa-chart-line"></i><span>Laporan</span>
+    <a href="transaksi.php" class="mnav-item<?= $AKTIF === 'transaksi' ? ' active' : '' ?>">
+        <i class="fas fa-receipt"></i><span>Transaksi</span>
     </a>
     <button type="button" class="mnav-fab" id="mnavFab" aria-label="Tambah transaksi">
         <i class="fas fa-plus"></i>
     </button>
+    <a href="laporan.php" class="mnav-item<?= $AKTIF === 'laporan' ? ' active' : '' ?>">
+        <i class="fas fa-chart-line"></i><span>Laporan</span>
+    </a>
     <a href="pengaturan.php" class="mnav-item<?= $AKTIF === 'pengaturan' ? ' active' : '' ?>">
         <i class="fas fa-gear"></i><span>Atur</span>
     </a>

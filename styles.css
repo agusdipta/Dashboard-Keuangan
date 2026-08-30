@@ -383,6 +383,65 @@ body {
   opacity: 0.5;
 }
 
+/* Daftar peringkat "Pengeluaran per Kategori" */
+.kat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.kat-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.kat-item-head .kategori-chip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kat-item-amt {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.kat-item-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kat-item-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.kat-item-bar span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+.kat-item-pct {
+  flex: 0 0 auto;
+  min-width: 38px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------------- Kartu perbandingan ---------------- */
 .comparison-container {
   display: grid;
@@ -514,6 +573,113 @@ body {
 /* ---------------- Tabel ---------------- */
 .transaction-history .card {
   margin-bottom: 26px;
+}
+
+/* Tautan "Lihat semua" di bawah pratinjau riwayat */
+.lihat-semua {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.lihat-semua:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary-color);
+}
+
+/* Chip preset periode (halaman Transaksi) */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-filter {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.chip-filter:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.chip-filter.aktif {
+  background: var(--primary-gradient);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Ringkasan kecil di atas daftar transaksi */
+.tx-ringkas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.tx-ringkas b {
+  color: var(--text);
+  margin-left: 4px;
+}
+
+/* Navigasi halaman */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--primary-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pager-btn:hover {
+  background: var(--primary-soft);
+}
+
+.pager-btn.disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pager-info {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .table-responsive {
@@ -1049,13 +1215,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-around;
-    gap: 4px;
+    gap: 2px;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 1100;
-    padding: 8px 14px calc(9px + env(safe-area-inset-bottom, 0px));
+    padding: 7px 8px calc(8px + env(safe-area-inset-bottom, 0px));
     background: var(--glass-bg);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
     backdrop-filter: blur(16px) saturate(150%);
@@ -1064,19 +1230,27 @@ body {
 
   .mnav-item {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    padding: 4px 2px;
+    padding: 4px 1px;
     text-decoration: none;
     color: var(--text-muted);
-    font-size: 0.66rem;
+    font-size: 0.6rem;
     font-weight: 600;
   }
 
+  .mnav-item span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .mnav-item i {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
   }
 
   .mnav-item.active {

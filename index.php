@@ -111,6 +111,12 @@ $tren_nilai = array_values($tren_nilai);
 
 $daftar_kategori = ambil_kategori($koneksi, $UID);
 $flash = get_flash();
+
+// Riwayat di Dashboard hanya pratinjau — sisanya dilihat di Laporan
+const RIWAYAT_MAKS = 6;
+$rentang_ini  = 'tanggal_mulai=' . date('Y-m-01') . '&tanggal_akhir=' . date('Y-m-t');
+$rentang_lalu = 'tanggal_mulai=' . date('Y-m-01', strtotime('first day of -1 month'))
+              . '&tanggal_akhir=' . date('Y-m-t', strtotime('first day of -1 month'));
 ?>
 
 <!DOCTYPE html>
@@ -132,6 +138,7 @@ $flash = get_flash();
             </div>
             <ul class="sidebar-menu">
                 <li class="active"><a href="index.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="transaksi.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
                 <li><a href="laporan.php"><i class="fas fa-chart-line"></i> Laporan</a></li>
                 <li><a href="pengaturan.php"><i class="fas fa-cog"></i> Pengaturan</a></li>
             </ul>
@@ -319,7 +326,12 @@ $flash = get_flash();
                         </div>
                     </div>
                     <div class="card-body">
-                        <?php render_tabel_transaksi($tx_ini, 'index.php', false); ?>
+                        <?php render_tabel_transaksi(array_slice($tx_ini, 0, RIWAYAT_MAKS), 'index.php', false); ?>
+                        <?php if (count($tx_ini) > RIWAYAT_MAKS): ?>
+                            <a class="lihat-semua" href="<?= e('transaksi.php?' . $rentang_ini) ?>">
+                                Lihat semua (<?= count($tx_ini) ?> transaksi) <i class="fas fa-arrow-right"></i>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -333,7 +345,12 @@ $flash = get_flash();
                         </div>
                     </div>
                     <div class="card-body">
-                        <?php render_tabel_transaksi($tx_lalu, 'index.php', false); ?>
+                        <?php render_tabel_transaksi(array_slice($tx_lalu, 0, RIWAYAT_MAKS), 'index.php', false); ?>
+                        <?php if (count($tx_lalu) > RIWAYAT_MAKS): ?>
+                            <a class="lihat-semua" href="<?= e('transaksi.php?' . $rentang_lalu) ?>">
+                                Lihat semua (<?= count($tx_lalu) ?> transaksi) <i class="fas fa-arrow-right"></i>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

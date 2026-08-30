@@ -15,52 +15,54 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal_akhir)) {
     $tanggal_akhir = date('Y-m-t');
 }
 
-// Daftar transaksi pada periode (prepared statement)
+// Total pemasukan & pengeluaran pada periode
 $stmt = $koneksi->prepare(
-    "SELECT t.*, k.nama AS kategori_nama, k.ikon AS kategori_ikon, k.warna AS kategori_warna
-     FROM transaksi t
-     LEFT JOIN kategori k ON k.id = t.kategori_id
-     WHERE t.user_id = ? AND t.tanggal BETWEEN ? AND ?
-     ORDER BY t.tanggal DESC, t.id DESC"
+    "SELECT COALESCE(SUM(CASE WHEN tipe = 'pemasukan'   THEN jumlah END), 0) AS masuk,
+            COALESCE(SUM(CASE WHEN tipe = 'pengeluaran' THEN jumlah END), 0) AS keluar
+     FROM transaksi
+     WHERE user_id = ? AND tanggal BETWEEN ? AND ?"
 );
 $stmt->bind_param('iss', $UID, $tanggal_mulai, $tanggal_akhir);
 $stmt->execute();
-$res = $stmt->get_result();
-$data_transaksi = [];
-$total_pemasukan = 0;
-$total_pengeluaran = 0;
-while ($row = $res->fetch_assoc()) {
-    $data_transaksi[] = $row;
-    if ($row['tipe'] === 'pemasukan') {
-        $total_pemasukan += $row['jumlah'];
-    } else {
-        $total_pengeluaran += $row['jumlah'];
-    }
-}
+$tot = $stmt->get_result()->fetch_assoc();
 $stmt->close();
+$total_pemasukan   = (float) $tot['masuk'];
+$total_pengeluaran = (float) $tot['keluar'];
 
 $saldo_akhir = $saldo_awal + $total_pemasukan - $total_pengeluaran;
 
-// Rincian pengeluaran per kategori (untuk grafik batang)
+// Rincian pengeluaran per kategori (daftar peringkat)
 $stmt = $koneksi->prepare(
     "SELECT COALESCE(k.nama, 'Tanpa Kategori') AS nama,
+            COALESCE(k.ikon, 'fa-tag')        AS ikon,
             COALESCE(k.warna, '#9e9e9e')      AS warna,
             SUM(t.jumlah)                     AS total
      FROM transaksi t
      LEFT JOIN kategori k ON k.id = t.kategori_id
      WHERE t.user_id = ? AND t.tipe = 'pengeluaran' AND t.tanggal BETWEEN ? AND ?
-     GROUP BY k.id, k.nama, k.warna
-     ORDER BY total DESC
-     LIMIT 8"
+     GROUP BY k.id, k.nama, k.ikon, k.warna
+     ORDER BY total DESC"
 );
 $stmt->bind_param('iss', $UID, $tanggal_mulai, $tanggal_akhir);
 $stmt->execute();
 $res = $stmt->get_result();
-$data_kategori = [];
+$semua_kategori = [];
 while ($row = $res->fetch_assoc()) {
-    $data_kategori[] = $row;
+    $semua_kategori[] = $row;
 }
 $stmt->close();
+
+// 5 kategori teratas; sisanya digabung jadi satu baris "Lainnya"
+$rincian = array_slice($semua_kategori, 0, 5);
+$sisa    = array_slice($semua_kategori, 5);
+if ($sisa) {
+    $rincian[] = [
+        'nama'  => 'Lainnya (' . count($sisa) . ' kategori)',
+        'ikon'  => 'fa-ellipsis',
+        'warna' => '#9aa4b2',
+        'total' => array_sum(array_map(static fn($r) => (float) $r['total'], $sisa)),
+    ];
+}
 
 $flash = get_flash();
 ?>
@@ -84,6 +86,7 @@ $flash = get_flash();
             </div>
             <ul class="sidebar-menu">
                 <li><a href="index.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="transaksi.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
                 <li class="active"><a href="laporan.php"><i class="fas fa-chart-line"></i> Laporan</a></li>
                 <li><a href="pengaturan.php"><i class="fas fa-cog"></i> Pengaturan</a></li>
             </ul>
@@ -116,13 +119,18 @@ $flash = get_flash();
                             <label for="tanggal_akhir" class="form-label">Tanggal Akhir</label>
                             <input type="date" class="form-control" id="tanggal_akhir" name="tanggal_akhir" value="<?= e($tanggal_akhir) ?>">
                         </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary me-2">
+                        <div class="col-md-4 d-flex align-items-end gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-filter"></i> Filter
                             </button>
                             <button type="button" id="exportPDF" class="btn btn-success">
                                 <i class="fas fa-file-pdf"></i> Ekspor PDF
                             </button>
+                        </div>
+                        <div class="col-12">
+                            <a class="lihat-semua" href="<?= e("transaksi.php?tanggal_mulai=$tanggal_mulai&tanggal_akhir=$tanggal_akhir") ?>">
+                                <i class="fas fa-receipt"></i> Lihat &amp; kelola transaksi periode ini <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -175,20 +183,28 @@ $flash = get_flash();
 
             <div class="card mb-4">
                 <div class="card-header">
-                    <h2>Daftar Transaksi</h2>
-                </div>
-                <div class="card-body">
-                    <?php render_tabel_transaksi($data_transaksi, 'laporan.php'); ?>
-                </div>
-            </div>
-
-            <div class="card mb-4">
-                <div class="card-header">
                     <h2>Pengeluaran per Kategori</h2>
+                    <span class="card-sub">Rp <?= number_format($total_pengeluaran, 0, ',', '.') ?></span>
                 </div>
                 <div class="card-body">
-                    <?php if (count($data_kategori) > 0): ?>
-                        <canvas id="barChart" width="100%" height="300"></canvas>
+                    <?php if ($rincian): ?>
+                        <div class="kat-list">
+                            <?php foreach ($rincian as $r):
+                                $persen = $total_pengeluaran > 0 ? $r['total'] / $total_pengeluaran * 100 : 0;
+                                $pct_txt = $persen >= 0.5 ? number_format($persen, 0) . '%' : ($persen > 0 ? '<1%' : '0%');
+                            ?>
+                                <div class="kat-item">
+                                    <div class="kat-item-head">
+                                        <span class="kategori-chip" style="--kat:<?= e($r['warna']) ?>"><i class="fas <?= e($r['ikon']) ?>"></i> <?= e($r['nama']) ?></span>
+                                        <span class="kat-item-amt">Rp <?= number_format($r['total'], 0, ',', '.') ?></span>
+                                    </div>
+                                    <div class="kat-item-track">
+                                        <div class="kat-item-bar"><span style="width: <?= max(2, round($persen, 1)) ?>%; background: <?= e($r['warna']) ?>;"></span></div>
+                                        <span class="kat-item-pct"><?= $pct_txt ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     <?php else: ?>
                         <p class="text-center text-muted mb-0">Belum ada pengeluaran pada periode ini.</p>
                     <?php endif; ?>
@@ -234,28 +250,6 @@ $flash = get_flash();
                 plugins: { legend: { position: 'bottom' } }
             }
         });
-
-        <?php if (count($data_kategori) > 0): ?>
-        // Bar Chart: pengeluaran per kategori
-        const barCtx = document.getElementById('barChart').getContext('2d');
-        new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: <?= json_encode(array_map(fn($k) => $k['nama'], $data_kategori)) ?>,
-                datasets: [{
-                    label: 'Total Pengeluaran (Rp)',
-                    data: <?= json_encode(array_map(fn($k) => (float) $k['total'], $data_kategori)) ?>,
-                    backgroundColor: <?= json_encode(array_map(fn($k) => $k['warna'], $data_kategori)) ?>,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
-            }
-        });
-        <?php endif; ?>
 
         // Ekspor PDF
         document.getElementById('exportPDF').addEventListener('click', function () {

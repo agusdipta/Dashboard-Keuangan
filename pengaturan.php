@@ -205,6 +205,7 @@ $jml_pending = count(array_filter($daftar_user, fn($u) => $u['status'] === 'pend
             </div>
             <ul class="sidebar-menu">
                 <li><a href="index.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="transaksi.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
                 <li><a href="laporan.php"><i class="fas fa-chart-line"></i> Laporan</a></li>
                 <li class="active"><a href="pengaturan.php"><i class="fas fa-cog"></i> Pengaturan</a></li>
             </ul>
