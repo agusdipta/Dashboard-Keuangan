@@ -74,6 +74,7 @@ $flash = get_flash();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <script>(function(){try{var t=localStorage.getItem("appTheme");if(!t)t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 </head>
 <body>
     <div class="app-container">
@@ -206,6 +207,15 @@ $flash = get_flash();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Warna teks grafik mengikuti tema (terang / gelap)
+        (function () {
+            const s = getComputedStyle(document.documentElement);
+            if (window.Chart) {
+                Chart.defaults.color = (s.getPropertyValue('--text-muted') || '#6b7280').trim();
+                Chart.defaults.borderColor = (s.getPropertyValue('--border') || '#e6e9f2').trim();
+            }
+        })();
+
         // Pie Chart: perbandingan pemasukan vs pengeluaran
         const pieCtx = document.getElementById('pieChart').getContext('2d');
         new Chart(pieCtx, {

@@ -85,18 +85,52 @@ document.addEventListener("DOMContentLoaded", () => {
     dateInput.value = formattedDate
   }
 
-  // Tema aplikasi
-  const applyTheme = () => {
-    const selectedTheme = localStorage.getItem("appTheme") || "default"
-    document.documentElement.setAttribute("data-theme", selectedTheme)
-
-    // Tambahkan kelas tema ke body
-    document.body.className = ""
-    document.body.classList.add(`theme-${selectedTheme}`)
+  // Tema terang / gelap
+  const rootEl = document.documentElement
+  const temaTersimpan = () => {
+    try {
+      return localStorage.getItem("appTheme")
+    } catch (e) {
+      return null
+    }
+  }
+  const setTema = (nama, simpan) => {
+    rootEl.setAttribute("data-theme", nama)
+    if (simpan) {
+      try {
+        localStorage.setItem("appTheme", nama)
+      } catch (e) {
+        /* localStorage tidak tersedia */
+      }
+    }
+    const btn = document.getElementById("themeToggle")
+    if (btn) {
+      const ic = btn.querySelector("i")
+      if (ic) ic.className = nama === "dark" ? "fas fa-sun" : "fas fa-moon"
+      btn.setAttribute("aria-label", nama === "dark" ? "Mode terang" : "Mode gelap")
+    }
   }
 
-  // Terapkan tema saat halaman dimuat
-  applyTheme()
+  // Sinkronkan ikon dengan tema yang sudah dipasang oleh skrip <head>
+  setTema(
+    rootEl.getAttribute("data-theme") ||
+      temaTersimpan() ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"),
+    false
+  )
+
+  const themeToggle = document.getElementById("themeToggle")
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const gelap = rootEl.getAttribute("data-theme") === "dark"
+      setTema(gelap ? "light" : "dark", true)
+    })
+  }
+
+  // Ikuti tema OS selama pengguna belum memilih manual
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!temaTersimpan()) setTema(e.matches ? "dark" : "light", false)
+  })
 
   // Hapus massal: checkbox per baris + tombol "Hapus Terpilih"
   document.querySelectorAll(".form-hapus-massal").forEach((form) => {

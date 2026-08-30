@@ -122,6 +122,7 @@ $flash = get_flash();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <script>(function(){try{var t=localStorage.getItem("appTheme");if(!t)t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 </head>
 <body>
     <div class="app-container">
@@ -396,6 +397,10 @@ $flash = get_flash();
             const accent = (styles.getPropertyValue('--primary-color') || '#4361ee').trim();
             const surface = (styles.getPropertyValue('--surface') || '#ffffff').trim();
             const rupiah = (v) => 'Rp ' + Number(v).toLocaleString('id-ID');
+            if (window.Chart) {
+                Chart.defaults.color = (styles.getPropertyValue('--text-muted') || '#6b7280').trim();
+                Chart.defaults.borderColor = (styles.getPropertyValue('--border') || '#e6e9f2').trim();
+            }
 
             const donutEl = document.getElementById('donutChart');
             if (donutEl) {

@@ -44,44 +44,39 @@
 
   --sidebar-width: 250px;
   --header-height: 70px;
+
+  color-scheme: light;
 }
 
-/* Tema alternatif */
-[data-theme="green"] {
-  --primary-color: #16a34a;
-  --primary-strong: #15803d;
-  --primary-soft: rgba(22, 163, 74, 0.10);
-  --primary-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);
-  --secondary-color: #14532d;
-}
-
-[data-theme="purple"] {
-  --primary-color: #7c3aed;
-  --primary-strong: #5b21b6;
-  --primary-soft: rgba(124, 58, 237, 0.10);
-  --primary-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
-  --secondary-color: #4c1d95;
-}
-
+/* Mode gelap */
 [data-theme="dark"] {
-  --primary-color: #6366f1;
-  --primary-strong: #4f46e5;
-  --primary-soft: rgba(99, 102, 241, 0.16);
+  --primary-color: #6d83ff;
+  --primary-strong: #566cf0;
+  --primary-soft: rgba(109, 131, 255, 0.16);
   --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
   --secondary-color: #4338ca;
 
+  --bg: #0f1420;
   --bg-gradient:
-    radial-gradient(1000px 520px at 100% -10%, rgba(99, 102, 241, 0.20), transparent 60%),
+    radial-gradient(1000px 520px at 100% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
     radial-gradient(800px 420px at -10% 110%, rgba(139, 92, 246, 0.16), transparent 55%),
     #0f1420;
   --surface: #171c28;
   --surface-2: #1e2432;
-  --glass-bg: rgba(23, 28, 40, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-bg: rgba(23, 28, 40, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
   --border: #2a3142;
-  --text: #e5e7eb;
+
+  --text: #e6e9f1;
   --text-muted: #9aa4b2;
-  --dark-color: #e5e7eb;
+  --dark-color: #e6e9f1;
+  --light-color: #1e2432;
+
+  --box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 26px 52px -18px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
 }
 
 * {
@@ -531,6 +526,15 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin: 0;
+  /* Jangan pakai warna baris putih bawaan Bootstrap — ikut warna kartu */
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text);
+  --bs-table-striped-bg: transparent;
+  --bs-table-striped-color: var(--text);
+  --bs-table-hover-bg: var(--primary-soft);
+  --bs-table-hover-color: var(--text);
+  --bs-table-active-bg: var(--primary-soft);
+  color: var(--text);
 }
 
 .table th {
@@ -822,6 +826,88 @@ body {
   background: var(--danger-color);
   color: #fff;
   border-color: transparent;
+}
+
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--primary-soft);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* ================================================================
+   Penyesuaian mode gelap untuk komponen Bootstrap (warna baku terang)
+   ================================================================ */
+[data-theme="dark"] .bg-light {
+  background-color: var(--surface-2) !important;
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .text-dark {
+  color: var(--text) !important;
+}
+
+[data-theme="dark"] .badge.bg-light {
+  background-color: var(--surface-2) !important;
+}
+
+[data-theme="dark"] .input-group-text {
+  background-color: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .alert-success {
+  background: rgba(22, 163, 74, 0.16);
+  border-color: rgba(22, 163, 74, 0.38);
+  color: #86efac;
+}
+
+[data-theme="dark"] .alert-info {
+  background: rgba(59, 130, 246, 0.16);
+  border-color: rgba(59, 130, 246, 0.38);
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .alert-danger {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.38);
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .alert-warning {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.42);
+  color: #fcd34d;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .table th {
+  background: var(--surface-2);
 }
 
 /* ---------------- Halaman login / buat akun ---------------- */

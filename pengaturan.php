@@ -195,6 +195,7 @@ $jml_pending = count(array_filter($daftar_user, fn($u) => $u['status'] === 'pend
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <script>(function(){try{var t=localStorage.getItem("appTheme");if(!t)t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 </head>
 <body>
     <div class="app-container">
@@ -417,30 +418,21 @@ $jml_pending = count(array_filter($daftar_user, fn($u) => $u['status'] === 'pend
                             <h2>Tema Aplikasi</h2>
                         </div>
                         <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label">Pilih Tema</label>
-                                <div class="d-flex gap-3">
-                                    <div class="theme-option active" data-theme="default">
-                                        <div class="theme-preview" style="background: linear-gradient(to bottom, #4361ee, #3f37c9);"></div>
-                                        <span>Default</span>
-                                    </div>
-                                    <div class="theme-option" data-theme="green">
-                                        <div class="theme-preview" style="background: linear-gradient(to bottom, #2e7d32, #1b5e20);"></div>
-                                        <span>Green</span>
-                                    </div>
-                                    <div class="theme-option" data-theme="purple">
-                                        <div class="theme-preview" style="background: linear-gradient(to bottom, #7b1fa2, #4a148c);"></div>
-                                        <span>Purple</span>
-                                    </div>
-                                    <div class="theme-option" data-theme="dark">
-                                        <div class="theme-preview" style="background: linear-gradient(to bottom, #424242, #212121);"></div>
-                                        <span>Dark</span>
-                                    </div>
+                            <p class="form-text mb-3">Bisa juga diganti cepat lewat tombol <i class="fas fa-moon"></i> di pojok kanan atas.</p>
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div class="theme-option" data-theme="light">
+                                    <div class="theme-preview" style="background: linear-gradient(to bottom, #ffffff, #eef1f8); border: 1px solid #e6e9f2;"></div>
+                                    <span>Terang</span>
+                                </div>
+                                <div class="theme-option" data-theme="dark">
+                                    <div class="theme-preview" style="background: linear-gradient(to bottom, #1e2432, #0f1420);"></div>
+                                    <span>Gelap</span>
+                                </div>
+                                <div class="theme-option" data-theme="system">
+                                    <div class="theme-preview" style="background: linear-gradient(120deg, #ffffff 50%, #0f1420 50%);"></div>
+                                    <span>Ikuti Sistem</span>
                                 </div>
                             </div>
-                            <button type="button" id="saveTheme" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Simpan Tema
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -451,29 +443,41 @@ $jml_pending = count(array_filter($daftar_user, fn($u) => $u['status'] === 'pend
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
     <script>
-        // Tema aplikasi
-        const themeOptions = document.querySelectorAll('.theme-option');
-        let selectedTheme = localStorage.getItem('appTheme') || 'default';
+        // Pilih tema — langsung diterapkan & disimpan
+        (function () {
+            const opsi = document.querySelectorAll('.theme-option');
+            const cocokSistem = () =>
+                window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            const tersimpan = localStorage.getItem('appTheme');
+            let pilihan = tersimpan === 'dark' || tersimpan === 'light' ? tersimpan : 'system';
 
-        themeOptions.forEach(option => {
-            option.classList.toggle('active', option.dataset.theme === selectedTheme);
-        });
+            const tandai = () => {
+                opsi.forEach(o => o.classList.toggle('active', o.dataset.theme === pilihan));
+            };
+            tandai();
 
-        themeOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                themeOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                selectedTheme = option.dataset.theme;
+            opsi.forEach(o => {
+                o.addEventListener('click', () => {
+                    pilihan = o.dataset.theme;
+                    tandai();
+                    if (pilihan === 'system') {
+                        localStorage.removeItem('appTheme');
+                        document.documentElement.setAttribute('data-theme', cocokSistem());
+                    } else {
+                        localStorage.setItem('appTheme', pilihan);
+                        document.documentElement.setAttribute('data-theme', pilihan);
+                    }
+                    // segarkan ikon tombol di header
+                    const ic = document.querySelector('#themeToggle i');
+                    if (ic) {
+                        ic.className =
+                            document.documentElement.getAttribute('data-theme') === 'dark'
+                                ? 'fas fa-sun'
+                                : 'fas fa-moon';
+                    }
+                });
             });
-        });
-
-        document.getElementById('saveTheme').addEventListener('click', () => {
-            localStorage.setItem('appTheme', selectedTheme);
-            document.documentElement.setAttribute('data-theme', selectedTheme);
-            alert('Tema berhasil disimpan!');
-        });
-
-        document.documentElement.setAttribute('data-theme', selectedTheme);
+        })();
     </script>
     <?php require __DIR__ . '/partial_mobilenav.php'; ?>
 </body>
