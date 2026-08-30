@@ -79,8 +79,14 @@ $kat_sheet = ambil_kategori($koneksi, $UID);
         var closeBtn = document.getElementById('sheetClose');
         if (!sheet || !scrim || !fab) return;
 
+        var scrollYSebelum = 0;
+
         function bukaSheet() {
+            // Kunci scroll latar: bekukan <body> di posisi sekarang
+            scrollYSebelum = window.scrollY || document.documentElement.scrollTop || 0;
+            document.body.style.top = '-' + scrollYSebelum + 'px';
             document.body.classList.add('sheet-lock');
+            document.documentElement.classList.add('sheet-lock');
             sheet.classList.add('show');
             scrim.classList.add('show');
             var f = document.getElementById('s_keterangan');
@@ -88,8 +94,11 @@ $kat_sheet = ambil_kategori($koneksi, $UID);
         }
         function tutupSheet() {
             document.body.classList.remove('sheet-lock');
+            document.documentElement.classList.remove('sheet-lock');
+            document.body.style.top = '';
             sheet.classList.remove('show');
             scrim.classList.remove('show');
+            window.scrollTo(0, scrollYSebelum);
         }
 
         fab.addEventListener('click', bukaSheet);

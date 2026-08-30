@@ -1022,6 +1022,8 @@ body {
     background: rgba(10, 14, 22, 0.45);
     opacity: 0;
     visibility: hidden;
+    touch-action: none;
+    overscroll-behavior: contain;
     transition: opacity 0.25s ease, visibility 0.25s ease;
   }
 
@@ -1055,8 +1057,17 @@ body {
     visibility: visible;
   }
 
+  /* Kunci scroll latar saat bottom sheet terbuka */
+  html.sheet-lock,
   body.sheet-lock {
     overflow: hidden;
+  }
+
+  body.sheet-lock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
   }
 }
 
