@@ -1,22 +1,62 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Format currency inputs
-  const jumlahInput = document.getElementById("jumlah")
-  if (jumlahInput) {
-    jumlahInput.addEventListener("input", (e) => {
-      // Remove non-numeric characters
-      const value = e.target.value.replace(/[^\d]/g, "")
+  // Auto pemisah ribuan pada input .js-rupiah (ketik 600000 -> tampil 600.000).
+  // Saat form dikirim, nilainya dikembalikan ke angka polos (600000).
+  const kelompokRibuan = (digits) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
 
-      // Format with thousand separators for display only
-      if (value.length > 0) {
-        const formattedValue = new Intl.NumberFormat("id-ID").format(value)
-        // We don't update the input value directly to avoid cursor position issues
-        // This is just for visual feedback
-        document.getElementById("formatted-amount").textContent = `Rp ${formattedValue}`
+  function pasangFormatRupiah(inp) {
+    const format = () => {
+      const caret = inp.selectionStart ?? inp.value.length
+      const digitSebelumCaret = inp.value.slice(0, caret).replace(/\D/g, "").length
+      const digits = inp.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "")
+      inp.value = digits ? kelompokRibuan(digits) : ""
+
+      // Kembalikan posisi kursor mengikuti jumlah digit sebelumnya
+      let terlihat = 0
+      let pos = inp.value.length
+      if (digitSebelumCaret === 0) {
+        pos = 0
       } else {
-        document.getElementById("formatted-amount").textContent = ""
+        for (let i = 0; i < inp.value.length; i++) {
+          if (/\d/.test(inp.value[i])) {
+            terlihat++
+            if (terlihat === digitSebelumCaret) {
+              pos = i + 1
+              break
+            }
+          }
+        }
       }
-    })
+      try {
+        inp.setSelectionRange(pos, pos)
+      } catch (e) {
+        /* input belum fokus */
+      }
+    }
+
+    inp.addEventListener("input", format)
+    if (inp.value) format()
+
+    const form = inp.closest("form")
+    if (form && !form.dataset.rupiahBound) {
+      form.dataset.rupiahBound = "1"
+      form.addEventListener("submit", () => {
+        form.querySelectorAll("input.js-rupiah").forEach((el) => {
+          el.value = el.value.replace(/\D/g, "")
+        })
+      })
+    }
   }
+
+  document.querySelectorAll("input.js-rupiah").forEach(pasangFormatRupiah)
+
+  // Notifikasi flash: hilang otomatis setelah 4 detik
+  document.querySelectorAll(".app-flash").forEach((el) => {
+    setTimeout(() => {
+      el.style.opacity = "0"
+      el.style.transform = "translateY(-6px)"
+      setTimeout(() => el.remove(), 400)
+    }, 4000)
+  })
 
   // Mobile sidebar toggle
   const sidebarToggle = document.createElement("button")
@@ -57,4 +97,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Terapkan tema saat halaman dimuat
   applyTheme()
+
+  // Hapus massal: checkbox per baris + tombol "Hapus Terpilih"
+  document.querySelectorAll(".form-hapus-massal").forEach((form) => {
+    const all = form.querySelector(".cb-all")
+    const btn = form.querySelector('button[type="submit"]')
+    const count = form.querySelector(".cb-count")
+    const items = () => Array.from(form.querySelectorAll(".cb-item"))
+
+    const refresh = () => {
+      const dipilih = items().filter((c) => c.checked)
+      if (count) count.textContent = dipilih.length
+      if (btn) btn.disabled = dipilih.length === 0
+      if (all) {
+        all.checked = dipilih.length > 0 && dipilih.length === items().length
+        all.indeterminate = dipilih.length > 0 && dipilih.length < items().length
+      }
+    }
+
+    if (all) {
+      all.addEventListener("change", () => {
+        items().forEach((c) => {
+          c.checked = all.checked
+        })
+        refresh()
+      })
+    }
+
+    form.addEventListener("change", (e) => {
+      if (e.target.classList.contains("cb-item")) refresh()
+    })
+
+    form.addEventListener("submit", (e) => {
+      const n = items().filter((c) => c.checked).length
+      if (n === 0) {
+        e.preventDefault()
+        return
+      }
+      if (!confirm(`Hapus ${n} transaksi terpilih?`)) e.preventDefault()
+    })
+
+    refresh()
+  })
+
+  // Angka count-up pada kartu ringkasan
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  const fmtRp = (n) => "Rp " + Math.round(n).toLocaleString("id-ID")
+  document.querySelectorAll(".count-up").forEach((el) => {
+    const target = Number.parseFloat(el.getAttribute("data-value") || "0")
+    if (!Number.isFinite(target)) return
+    if (reduceMotion) {
+      el.textContent = fmtRp(target)
+      return
+    }
+    const durasi = 900
+    const mulai = performance.now()
+    const ease = (t) => 1 - Math.pow(1 - t, 3)
+    const langkah = (now) => {
+      const p = Math.min(1, (now - mulai) / durasi)
+      el.textContent = fmtRp(target * ease(p))
+      if (p < 1) requestAnimationFrame(langkah)
+      else el.textContent = fmtRp(target)
+    }
+    requestAnimationFrame(langkah)
+  })
 })
