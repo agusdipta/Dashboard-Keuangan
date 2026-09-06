@@ -111,6 +111,12 @@ $tren_nilai = array_values($tren_nilai);
 
 $daftar_kategori = ambil_kategori($koneksi, $UID);
 $flash = get_flash();
+
+// Riwayat di Dashboard hanya pratinjau — sisanya dilihat di Laporan
+const RIWAYAT_MAKS = 6;
+$rentang_ini  = 'tanggal_mulai=' . date('Y-m-01') . '&tanggal_akhir=' . date('Y-m-t');
+$rentang_lalu = 'tanggal_mulai=' . date('Y-m-01', strtotime('first day of -1 month'))
+              . '&tanggal_akhir=' . date('Y-m-t', strtotime('first day of -1 month'));
 ?>
 
 <!DOCTYPE html>
@@ -132,6 +138,7 @@ $flash = get_flash();
             </div>
             <ul class="sidebar-menu">
                 <li class="active"><a href="index.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="transaksi.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
                 <li><a href="laporan.php"><i class="fas fa-chart-line"></i> Laporan</a></li>
                 <li><a href="pengaturan.php"><i class="fas fa-cog"></i> Pengaturan</a></li>
             </ul>
@@ -272,37 +279,8 @@ $flash = get_flash();
                     <div class="card-body">
                         <form action="tambah.php" method="post" class="transaction-form">
                             <?= csrf_field() ?>
-                            <div class="form-group">
-                                <label for="tanggal"><i class="fas fa-calendar"></i> Tanggal</label>
-                                <input type="date" id="tanggal" name="tanggal" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="keterangan"><i class="fas fa-file-alt"></i> Keterangan</label>
-                                <input type="text" id="keterangan" name="keterangan" class="form-control" placeholder="Keterangan transaksi" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="jumlah"><i class="fas fa-money-bill"></i> Jumlah (Rp)</label>
-                                <input type="text" inputmode="numeric" id="jumlah" name="jumlah" class="form-control js-rupiah" placeholder="0" autocomplete="off" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="tipe"><i class="fas fa-exchange-alt"></i> Tipe Transaksi</label>
-                                <select id="tipe" name="tipe" class="form-control" required>
-                                    <option value="pemasukan">Pemasukan</option>
-                                    <option value="pengeluaran">Pengeluaran</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="kategori_id"><i class="fas fa-tags"></i> Kategori</label>
-                                <select id="kategori_id" name="kategori_id" class="form-control">
-                                    <option value="">— Tanpa kategori —</option>
-                                    <?php foreach ($daftar_kategori as $k): ?>
-                                        <option value="<?= (int) $k['id'] ?>" data-tipe="<?= e($k['tipe']) ?>"><?= e($k['nama']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="fas fa-plus-circle"></i> Tambah Transaksi
-                            </button>
+                            <?php require __DIR__ . '/partial_scan_struk.php'; ?>
+                            <?php $transaction_prefix = ''; $transaction_categories = $daftar_kategori; require __DIR__ . '/partial_transaction_fields.php'; ?>
                         </form>
                     </div>
                 </div>
@@ -319,7 +297,12 @@ $flash = get_flash();
                         </div>
                     </div>
                     <div class="card-body">
-                        <?php render_tabel_transaksi($tx_ini, 'index.php', false); ?>
+                        <?php render_tabel_transaksi(array_slice($tx_ini, 0, RIWAYAT_MAKS), 'index.php', false); ?>
+                        <?php if (count($tx_ini) > RIWAYAT_MAKS): ?>
+                            <a class="lihat-semua" href="<?= e('transaksi.php?' . $rentang_ini) ?>">
+                                Lihat semua (<?= count($tx_ini) ?> transaksi) <i class="fas fa-arrow-right"></i>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -333,7 +316,12 @@ $flash = get_flash();
                         </div>
                     </div>
                     <div class="card-body">
-                        <?php render_tabel_transaksi($tx_lalu, 'index.php', false); ?>
+                        <?php render_tabel_transaksi(array_slice($tx_lalu, 0, RIWAYAT_MAKS), 'index.php', false); ?>
+                        <?php if (count($tx_lalu) > RIWAYAT_MAKS): ?>
+                            <a class="lihat-semua" href="<?= e('transaksi.php?' . $rentang_lalu) ?>">
+                                Lihat semua (<?= count($tx_lalu) ?> transaksi) <i class="fas fa-arrow-right"></i>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

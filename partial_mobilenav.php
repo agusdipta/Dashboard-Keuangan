@@ -20,56 +20,31 @@ $kat_sheet = ambil_kategori($koneksi, $UID);
     </div>
     <form action="tambah.php" method="post" class="sheet-form">
         <?= csrf_field() ?>
-        <div class="form-group">
-            <label for="s_keterangan"><i class="fas fa-file-alt"></i> Keterangan</label>
-            <input type="text" id="s_keterangan" name="keterangan" class="form-control" placeholder="Keterangan transaksi" required>
-        </div>
-        <div class="form-group">
-            <label for="s_jumlah"><i class="fas fa-money-bill"></i> Jumlah (Rp)</label>
-            <input type="text" inputmode="numeric" id="s_jumlah" name="jumlah" class="form-control js-rupiah" placeholder="0" autocomplete="off" required>
-        </div>
-        <div class="sheet-2col">
-            <div class="form-group">
-                <label for="s_tipe"><i class="fas fa-exchange-alt"></i> Tipe</label>
-                <select id="s_tipe" name="tipe" class="form-control" required>
-                    <option value="pengeluaran">Pengeluaran</option>
-                    <option value="pemasukan">Pemasukan</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="s_tanggal"><i class="fas fa-calendar"></i> Tanggal</label>
-                <input type="date" id="s_tanggal" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="s_kategori"><i class="fas fa-tags"></i> Kategori</label>
-            <select id="s_kategori" name="kategori_id" class="form-control">
-                <option value="">— Tanpa kategori —</option>
-                <?php foreach ($kat_sheet as $k): ?>
-                    <option value="<?= (int) $k['id'] ?>" data-tipe="<?= e($k['tipe']) ?>"><?= e($k['nama']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">
-            <i class="fas fa-plus-circle"></i> Simpan
-        </button>
+        <?php require __DIR__ . '/partial_scan_struk.php'; ?>
+        <?php $transaction_prefix = 's_'; $transaction_categories = $kat_sheet; require __DIR__ . '/partial_transaction_fields.php'; ?>
     </form>
 </div>
 
 <nav class="mnav" aria-label="Navigasi utama">
     <a href="index.php" class="mnav-item<?= $AKTIF === 'dashboard' ? ' active' : '' ?>">
-        <i class="fas fa-house"></i><span>Dashboard</span>
+        <i class="fas fa-house"></i><span>Beranda</span>
     </a>
-    <a href="laporan.php" class="mnav-item<?= $AKTIF === 'laporan' ? ' active' : '' ?>">
-        <i class="fas fa-chart-line"></i><span>Laporan</span>
+    <a href="transaksi.php" class="mnav-item<?= $AKTIF === 'transaksi' ? ' active' : '' ?>">
+        <i class="fas fa-receipt"></i><span>Transaksi</span>
     </a>
     <button type="button" class="mnav-fab" id="mnavFab" aria-label="Tambah transaksi">
         <i class="fas fa-plus"></i>
     </button>
+    <a href="laporan.php" class="mnav-item<?= $AKTIF === 'laporan' ? ' active' : '' ?>">
+        <i class="fas fa-chart-line"></i><span>Laporan</span>
+    </a>
     <a href="pengaturan.php" class="mnav-item<?= $AKTIF === 'pengaturan' ? ' active' : '' ?>">
         <i class="fas fa-gear"></i><span>Atur</span>
     </a>
 </nav>
+
+<script src="receipt-parser.js?v=<?= filemtime(__DIR__ . '/receipt-parser.js') ?>" defer></script>
+<script src="scan-struk.js?v=<?= filemtime(__DIR__ . '/scan-struk.js') ?>" defer></script>
 
 <script>
     (function () {
@@ -89,8 +64,13 @@ $kat_sheet = ambil_kategori($koneksi, $UID);
             document.documentElement.classList.add('sheet-lock');
             sheet.classList.add('show');
             scrim.classList.add('show');
-            var f = document.getElementById('s_keterangan');
-            if (f) setTimeout(function () { f.focus(); }, 280);
+            sheet.querySelector('form').dispatchEvent(new Event('transaction:open'));
+            setTimeout(function () {
+                if (!sheet.classList.contains('show')) return;
+                var camera = sheet.querySelector('[data-scan-camera]');
+                var f = camera && camera.getClientRects().length ? camera : document.getElementById('s_keterangan');
+                if (f && !f.matches(':disabled')) f.focus({ preventScroll: true });
+            }, 280);
         }
         function tutupSheet() {
             document.body.classList.remove('sheet-lock');

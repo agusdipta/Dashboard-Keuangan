@@ -3,7 +3,7 @@ require __DIR__ . '/auth.php';
 csrf_check();
 
 $kembali = $_POST['kembali'] ?? 'index.php';
-if (!in_array($kembali, ['index.php', 'laporan.php'], true)) {
+if (!in_array($kembali, ['index.php', 'laporan.php', 'transaksi.php'], true)) {
     $kembali = 'index.php';
 }
 

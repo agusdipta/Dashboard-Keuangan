@@ -2,7 +2,7 @@
 require __DIR__ . '/auth.php';
 
 $kembali = $_REQUEST['kembali'] ?? 'index.php';
-if (!in_array($kembali, ['index.php', 'laporan.php'], true)) {
+if (!in_array($kembali, ['index.php', 'laporan.php', 'transaksi.php'], true)) {
     $kembali = 'index.php';
 }
 
@@ -119,6 +119,7 @@ $daftar_kategori = ambil_kategori($koneksi, $UID);
             </div>
             <ul class="sidebar-menu">
                 <li><a href="index.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="transaksi.php"><i class="fas fa-receipt"></i> Transaksi</a></li>
                 <li><a href="laporan.php"><i class="fas fa-chart-line"></i> Laporan</a></li>
                 <li><a href="pengaturan.php"><i class="fas fa-cog"></i> Pengaturan</a></li>
             </ul>

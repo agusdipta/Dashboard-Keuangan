@@ -383,6 +383,65 @@ body {
   opacity: 0.5;
 }
 
+/* Daftar peringkat "Pengeluaran per Kategori" */
+.kat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.kat-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.kat-item-head .kategori-chip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kat-item-amt {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.kat-item-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kat-item-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.kat-item-bar span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+.kat-item-pct {
+  flex: 0 0 auto;
+  min-width: 38px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------------- Kartu perbandingan ---------------- */
 .comparison-container {
   display: grid;
@@ -514,6 +573,113 @@ body {
 /* ---------------- Tabel ---------------- */
 .transaction-history .card {
   margin-bottom: 26px;
+}
+
+/* Tautan "Lihat semua" di bawah pratinjau riwayat */
+.lihat-semua {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.lihat-semua:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary-color);
+}
+
+/* Chip preset periode (halaman Transaksi) */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-filter {
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.chip-filter:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.chip-filter.aktif {
+  background: var(--primary-gradient);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* Ringkasan kecil di atas daftar transaksi */
+.tx-ringkas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.tx-ringkas b {
+  color: var(--text);
+  margin-left: 4px;
+}
+
+/* Navigasi halaman */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.pager-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--primary-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pager-btn:hover {
+  background: var(--primary-soft);
+}
+
+.pager-btn.disabled {
+  color: var(--text-muted);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.pager-info {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .table-responsive {
@@ -1049,13 +1215,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-around;
-    gap: 4px;
+    gap: 2px;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 1100;
-    padding: 8px 14px calc(9px + env(safe-area-inset-bottom, 0px));
+    padding: 7px 8px calc(8px + env(safe-area-inset-bottom, 0px));
     background: var(--glass-bg);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
     backdrop-filter: blur(16px) saturate(150%);
@@ -1064,19 +1230,27 @@ body {
 
   .mnav-item {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    padding: 4px 2px;
+    padding: 4px 1px;
     text-decoration: none;
     color: var(--text-muted);
-    font-size: 0.66rem;
+    font-size: 0.6rem;
     font-weight: 600;
   }
 
+  .mnav-item span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .mnav-item i {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
   }
 
   .mnav-item.active {
@@ -1190,6 +1364,191 @@ body {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.scan-struk {
+  margin-bottom: 10px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+}
+
+.scan-struk [hidden] {
+  display: none !important;
+}
+
+.scan-struk[hidden],
+.transaction-fields[hidden],
+.transaction-fields [hidden],
+.transaction-mode-actions [hidden] {
+  display: none !important;
+}
+
+.scan-struk-entry-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.scan-struk-entry-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  padding: 12px 8px;
+  justify-content: center;
+}
+
+.transaction-mode-actions {
+  margin-bottom: 14px;
+}
+
+.transaction-mode-link {
+  display: block;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary-color);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.transaction-fields {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.transaction-fields legend {
+  float: none;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.transaction-review-note {
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  line-height: 1.5;
+}
+
+.transaction-fields .form-group { margin-bottom: 16px; }
+.transaction-fields label { font-size: 0.8rem; font-weight: 600; margin-bottom: 7px; }
+.transaction-fields .form-control {
+  min-height: 46px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+.transaction-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.transaction-field-row > * { min-width: 0; }
+.transaction-field-row input { min-width: 0; width: 100%; }
+.transaction-optional { font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.transaction-amount {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-2);
+}
+.transaction-amount label { color: var(--text-muted); }
+.transaction-amount-input { display: flex; align-items: center; gap: 10px; }
+.transaction-amount-input > span { font-size: 1.1rem; font-weight: 600; color: var(--text-muted); }
+.transaction-fields .transaction-amount-input input {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: clamp(1.65rem, 5vw, 2rem);
+  font-weight: 700;
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+}
+.transaction-amount:focus-within { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.transaction-save { min-height: 48px; border-radius: 12px; }
+.transaction-fields .scan-struk-choice { margin: 0 0 16px; }
+@media (max-width: 360px) {
+  .transaction-field-row { grid-template-columns: 1fr; gap: 0; }
+}
+
+.scan-struk-heading {
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.scan-struk p,
+.scan-struk small {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.scan-struk small {
+  display: block;
+  margin: 10px 0 0;
+}
+
+.scan-struk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scan-struk-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 180px;
+  margin: 12px auto;
+  border-radius: 6px;
+  object-fit: contain;
+}
+
+.scan-struk .scan-struk-status:not(:empty) {
+  margin: 12px 0 0;
+  color: var(--text);
+}
+
+.scan-struk .scan-struk-error {
+  color: var(--danger-color);
+}
+
+.scan-struk progress {
+  width: 100%;
+  margin-top: 8px;
+  accent-color: var(--primary-color);
+}
+
+.scan-struk-choice {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
+.scan-struk details {
+  margin-top: 10px;
+  font-size: 0.8rem;
+}
+
+.scan-struk summary {
+  cursor: pointer;
+}
+
+.scan-struk pre {
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 8px 0 0;
+  color: var(--text);
 }
 
 .sheet-2col {
@@ -1521,4 +1880,103 @@ body {
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Editor potongan struk, juga dipakai di lembar transaksi pada HP. */
+.scan-struk-checks {
+  margin-top: 12px;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.scan-struk-checks ul {
+  padding-left: 18px;
+  margin: 6px 0 0;
+}
+
+.scan-struk-checks li + li {
+  margin-top: 6px;
+}
+
+.receipt-crop {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.receipt-crop-stage {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+  border-radius: 6px;
+  background: #18202c;
+  overflow: hidden;
+}
+
+.receipt-crop-stage canvas {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 420px;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.receipt-crop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.receipt-crop .btn-outline-secondary {
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.receipt-crop-bounds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.receipt-crop-bounds label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.receipt-crop-bounds input {
+  width: 100%;
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.receipt-crop button:focus-visible,
+.receipt-crop input:focus-visible,
+.receipt-crop summary:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
+}
+
+.scan-struk .receipt-crop-status:not(:empty) {
+  margin: 10px 0;
+}
+
+@media (max-width: 576px) {
+  .receipt-crop { padding: 10px; }
+  .receipt-crop-stage canvas { max-height: 350px; }
+  .receipt-crop-actions .btn { min-height: 40px; }
 }
