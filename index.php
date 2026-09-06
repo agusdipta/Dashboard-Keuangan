@@ -279,37 +279,8 @@ $rentang_lalu = 'tanggal_mulai=' . date('Y-m-01', strtotime('first day of -1 mon
                     <div class="card-body">
                         <form action="tambah.php" method="post" class="transaction-form">
                             <?= csrf_field() ?>
-                            <div class="form-group">
-                                <label for="tanggal"><i class="fas fa-calendar"></i> Tanggal</label>
-                                <input type="date" id="tanggal" name="tanggal" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="keterangan"><i class="fas fa-file-alt"></i> Keterangan</label>
-                                <input type="text" id="keterangan" name="keterangan" class="form-control" placeholder="Keterangan transaksi" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="jumlah"><i class="fas fa-money-bill"></i> Jumlah (Rp)</label>
-                                <input type="text" inputmode="numeric" id="jumlah" name="jumlah" class="form-control js-rupiah" placeholder="0" autocomplete="off" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="tipe"><i class="fas fa-exchange-alt"></i> Tipe Transaksi</label>
-                                <select id="tipe" name="tipe" class="form-control" required>
-                                    <option value="pemasukan">Pemasukan</option>
-                                    <option value="pengeluaran">Pengeluaran</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="kategori_id"><i class="fas fa-tags"></i> Kategori</label>
-                                <select id="kategori_id" name="kategori_id" class="form-control">
-                                    <option value="">— Tanpa kategori —</option>
-                                    <?php foreach ($daftar_kategori as $k): ?>
-                                        <option value="<?= (int) $k['id'] ?>" data-tipe="<?= e($k['tipe']) ?>"><?= e($k['nama']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="fas fa-plus-circle"></i> Tambah Transaksi
-                            </button>
+                            <?php require __DIR__ . '/partial_scan_struk.php'; ?>
+                            <?php $transaction_prefix = ''; $transaction_categories = $daftar_kategori; require __DIR__ . '/partial_transaction_fields.php'; ?>
                         </form>
                     </div>
                 </div>

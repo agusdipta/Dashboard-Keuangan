@@ -38,6 +38,33 @@ dan saldo sendiri yang terpisah.
 - Kolom **Jumlah** otomatis menambah pemisah ribuan saat diketik (`600000` → `600.000`).
 - Di ponsel: form muncul sebagai *bottom sheet* dari tombol **➕** pada bilah bawah.
 
+**Scan struk**
+
+- Tambah Transaksi membuka **Foto Struk**. Pilih foto baru, gambar dari galeri,
+  atau **Input Manual**. Form menonjolkan jumlah, diikuti keterangan, jenis
+  transaksi, tanggal, dan kategori opsional. Draf tetap ada saat berganti mode.
+- Foto JPG, PNG, atau WebP hingga 10 MB diproses di perangkat dengan Tesseract.js
+  6.0.1 (Indonesia + Inggris). Mesin dan data bahasa memerlukan internet/CDN.
+  Foto tidak dikirim atau disimpan ke server aplikasi.
+- OCR otomatis mencoba hingga empat pembacaan (gambar asli, tata letak,
+  kontras, dan area ringkasan bawah), dengan batas waktu dua menit. Tidak ada
+  tombol baca ulang atau editor potong. Gunakan foto baru atau input manual jika gagal.
+- Total atau saran langsung mengisi draf pengeluaran. Nominal yang didukung
+  hitungan independen didahulukan, lalu skor OCR. Jika ada beberapa nominal,
+  alternatif tersedia di form. Hasil ragu diberi label **Saran total**.
+- Saran hitungan memakai angka utuh dari tunai dikurangi kembalian atau subtotal
+  beserta biaya/pajak/diskon yang terbaca lengkap. Contoh Ichiban:
+  Rp300.000 dikurangi Rp51.675 menghasilkan Rp248.325, langsung mengisi jumlah.
+  Angka rusak tidak direkonstruksi dengan menebak digit.
+- Label seperti GRAND TOTAL, TOTAL BAYAR, AMOUNT DUE, dan variasi OCR diatur
+  dalam TOTAL_LABEL_GROUPS di receipt-parser.js. Spasi nominal seperti
+  42900. 00 diterima sebagai Rp42.900. Fixture MINISO/Ichiban menguji teks OCR,
+  bukan menjamin ketepatan seluruh karakter pada foto asli.
+- Hasil awal tetap dapat menjadi saran bila pembacaan lanjutan terhenti.
+  Batal Scan membatalkan penerapan hasil yang sedang diproses. Semua jumlah bisa
+  diedit; transaksi hanya tersimpan setelah **Simpan Transaksi** ditekan.
+  Saldo dashboard mengikuti saldo awal + pemasukan - pengeluaran bulan berjalan.
+
 **Laporan**
 - Filter periode, **Ringkasan Keuangan** (Saldo Awal, Pemasukan, Pengeluaran,
   Arus Kas Bersih, Saldo Akhir).
@@ -98,6 +125,9 @@ dan saldo sendiri yang terpisah.
 | `tambah.php` · `hapus.php` | Pemroses aksi (POST) tambah / hapus transaksi |
 | `generate_pdf_html.php` | Halaman laporan untuk dicetak / disimpan PDF |
 | `partial_mobilenav.php` | Komponen bilah navigasi bawah + *bottom sheet* "Tambah Transaksi" |
+| `partial_scan_struk.php` | Kontrol foto/pilih gambar dan hasil scan di form tambah |
+| `receipt-parser.js` · `scan-struk.js` | Ekstraksi total rupiah dan alur OCR di browser |
+| partial_transaction_fields.php | Form manual dan hasil scan bersama untuk desktop/HP |
 | `styles.css` · `script.js` | Gaya & skrip antarmuka |
 | `db_keuangan.sql` | Dump skema + sedikit data contoh (untuk impor manual) |
 | `migrasi_kategori.sql` · `migrasi_multiuser.sql` | Skrip migrasi manual (opsional) |
@@ -211,5 +241,11 @@ Selesai — aplikasi siap dipakai. 🎉
   diunduh lewat peramban.
 - **Tema** disimpan di `localStorage` peramban (per perangkat), bukan di server.
 - Aset CDN (Bootstrap/Font Awesome/Chart.js) butuh internet pada pemuatan pertama.
+- Uji aturan total struk: `node --test tests/receipt-parser.test.js` (Node hanya
+  diperlukan untuk pengujian, bukan untuk menjalankan aplikasi).
+- Uji alur scan di browser: `node tests/scan-struk.browser.cjs`; tambahkan `--ocr`
+  untuk membaca gambar struk sintetis dengan OCR/CDN asli. Memerlukan Node 22+,
+  PHP, dan Chrome/Edge (atur `BROWSER_PATH` bila tidak terdeteksi). Pengujian
+  memakai server lokal dan form sementara, tanpa membaca/menulis database aplikasi.
 - Untuk produksi, disarankan memakai user MySQL khusus (bukan `root`) dan
   memindahkan kredensial ke variabel lingkungan / file konfigurasi terpisah.
