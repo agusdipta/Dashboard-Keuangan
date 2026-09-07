@@ -1,123 +1,6 @@
 <?php
-/**
- * Koneksi database + inisialisasi skema + helper keamanan & autentikasi.
- * Halaman publik meng-`require` file ini; halaman terkunci meng-`require` auth.php.
- */
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-$koneksi = new mysqli("localhost", "root", "", "db_keuangan");
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
-}
-$koneksi->set_charset("utf8mb4");
-
-/* ================================================================== *
- *  Inisialisasi / migrasi skema (idempoten, aman dijalankan berulang)
- * ================================================================== */
-
-$koneksi->query("CREATE TABLE IF NOT EXISTS `users` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `username` varchar(50) NOT NULL,
-    `password` varchar(255) NOT NULL,
-    `nama_lengkap` varchar(100) NOT NULL,
-    `peran` enum('admin','user') NOT NULL DEFAULT 'user',
-    `status` enum('aktif','pending','nonaktif') NOT NULL DEFAULT 'pending',
-    `gagal_login` int(11) NOT NULL DEFAULT 0,
-    `kunci_sampai` datetime NULL DEFAULT NULL,
-    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-/* Lengkapi kolom users bila tabelnya versi lama */
-foreach ([
-    'peran'        => "enum('admin','user') NOT NULL DEFAULT 'user'",
-    'status'       => "enum('aktif','pending','nonaktif') NOT NULL DEFAULT 'pending'",
-    'gagal_login'  => "int(11) NOT NULL DEFAULT 0",
-    'kunci_sampai' => "datetime NULL DEFAULT NULL",
-] as $kol => $def) {
-    $c = $koneksi->query("SHOW COLUMNS FROM `users` LIKE '$kol'");
-    if ($c && $c->num_rows === 0) {
-        $koneksi->query("ALTER TABLE `users` ADD `$kol` $def");
-    }
-}
-/* Akun lama berpassword plaintext tidak kompatibel dengan hash -> nonaktifkan */
-$koneksi->query("UPDATE `users` SET status = 'nonaktif'
-    WHERE password NOT LIKE '\$2y\$%' AND password NOT LIKE '\$2a\$%' AND password NOT LIKE '\$2b\$%'");
-
-$koneksi->query("CREATE TABLE IF NOT EXISTS `auth_token` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `user_id` int(11) NOT NULL,
-    `selector` char(32) NOT NULL,
-    `validator_hash` char(64) NOT NULL,
-    `kadaluarsa` datetime NOT NULL,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_selector` (`selector`),
-    KEY `idx_user` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-$koneksi->query("CREATE TABLE IF NOT EXISTS `saldo` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `saldo_awal` decimal(15,2) NOT NULL DEFAULT 0,
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-$koneksi->query("CREATE TABLE IF NOT EXISTS `transaksi` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `tanggal` date NOT NULL,
-    `keterangan` varchar(255) NOT NULL,
-    `jumlah` decimal(15,2) NOT NULL,
-    `tipe` enum('pemasukan','pengeluaran') NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `idx_tanggal` (`tanggal`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-$koneksi->query("CREATE TABLE IF NOT EXISTS `kategori` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `nama` varchar(60) NOT NULL,
-    `tipe` enum('pemasukan','pengeluaran') NOT NULL,
-    `ikon` varchar(40) NOT NULL DEFAULT 'fa-tag',
-    `warna` varchar(9) NOT NULL DEFAULT '#6c757d',
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-/** Tambah kolom bila belum ada. */
-function _pastikan_kolom(mysqli $koneksi, string $tabel, string $kolom, string $definisi): void
-{
-    $c = $koneksi->query("SHOW COLUMNS FROM `$tabel` LIKE '$kolom'");
-    if ($c && $c->num_rows === 0) {
-        $koneksi->query("ALTER TABLE `$tabel` ADD `$kolom` $definisi");
-    }
-}
-
-_pastikan_kolom($koneksi, 'transaksi', 'kategori_id', "int(11) NULL DEFAULT NULL");
-_pastikan_kolom($koneksi, 'transaksi', 'user_id', "int(11) NULL DEFAULT NULL");
-_pastikan_kolom($koneksi, 'kategori', 'user_id', "int(11) NULL DEFAULT NULL");
-_pastikan_kolom($koneksi, 'saldo', 'user_id', "int(11) NULL DEFAULT NULL");
-
-/* Index bantu (abaikan bila sudah ada) */
-if (!($koneksi->query("SHOW INDEX FROM `transaksi` WHERE Key_name = 'idx_user'")->num_rows)) {
-    $koneksi->query("ALTER TABLE `transaksi` ADD KEY `idx_user` (`user_id`)");
-}
-if (!($koneksi->query("SHOW INDEX FROM `transaksi` WHERE Key_name = 'idx_kategori'")->num_rows)) {
-    $koneksi->query("ALTER TABLE `transaksi` ADD KEY `idx_kategori` (`kategori_id`)");
-}
-if (!($koneksi->query("SHOW INDEX FROM `kategori` WHERE Key_name = 'idx_user'")->num_rows)) {
-    $koneksi->query("ALTER TABLE `kategori` ADD KEY `idx_user` (`user_id`)");
-}
-/* Unik kategori: (nama,tipe) global -> (user_id,nama,tipe) per user */
-if ($koneksi->query("SHOW INDEX FROM `kategori` WHERE Key_name = 'uq_nama_tipe'")->num_rows) {
-    $koneksi->query("ALTER TABLE `kategori` DROP INDEX `uq_nama_tipe`");
-}
-if (!($koneksi->query("SHOW INDEX FROM `kategori` WHERE Key_name = 'uq_user_nama_tipe'")->num_rows)) {
-    $koneksi->query("ALTER TABLE `kategori` ADD UNIQUE KEY `uq_user_nama_tipe` (`user_id`,`nama`,`tipe`)");
-}
-if (!($koneksi->query("SHOW INDEX FROM `saldo` WHERE Key_name = 'uq_user'")->num_rows)) {
-    $koneksi->query("ALTER TABLE `saldo` ADD UNIQUE KEY `uq_user` (`user_id`)");
-}
+require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/session.php';
 
 /* ================================================================== *
  *  Konstanta
@@ -197,7 +80,7 @@ function get_flash(): ?array
  * ================================================================== */
 
 /** Buat cookie "ingat saya" (berlaku 30 hari). */
-function set_cookie_ingat(mysqli $koneksi, int $user_id): void
+function set_cookie_ingat(PDO $koneksi, int $user_id): void
 {
     $selector  = bin2hex(random_bytes(16));
     $validator = bin2hex(random_bytes(32));
@@ -207,20 +90,24 @@ function set_cookie_ingat(mysqli $koneksi, int $user_id): void
     $stmt = $koneksi->prepare(
         "INSERT INTO auth_token (user_id, selector, validator_hash, kadaluarsa) VALUES (?, ?, ?, ?)"
     );
-    $stmt->bind_param('isss', $user_id, $selector, $hash, $exp);
+    $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
+    $stmt->bindValue(2, $selector, PDO::PARAM_STR);
+    $stmt->bindValue(3, $hash, PDO::PARAM_STR);
+    $stmt->bindValue(4, $exp, PDO::PARAM_STR);
     $stmt->execute();
-    $stmt->close();
+    $stmt->closeCursor();
 
     setcookie('ingat', $selector . ':' . $validator, [
         'expires'  => time() + 30 * 24 * 3600,
         'path'     => '/',
+        'secure'   => session_get_cookie_params()['secure'],
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
 }
 
 /** Periksa cookie "ingat saya"; kembalikan user_id atau null. */
-function cek_cookie_ingat(mysqli $koneksi): ?int
+function cek_cookie_ingat(PDO $koneksi): ?int
 {
     $raw = $_COOKIE['ingat'] ?? '';
     if (!is_string($raw) || !str_contains($raw, ':')) {
@@ -231,10 +118,10 @@ function cek_cookie_ingat(mysqli $koneksi): ?int
     $stmt = $koneksi->prepare(
         "SELECT user_id, validator_hash, kadaluarsa FROM auth_token WHERE selector = ?"
     );
-    $stmt->bind_param('s', $selector);
+    $stmt->bindValue(1, $selector, PDO::PARAM_STR);
     $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $row = $stmt->fetch();
+    $stmt->closeCursor();
 
     if (!$row || strtotime($row['kadaluarsa']) < time()) {
         return null;
@@ -246,21 +133,21 @@ function cek_cookie_ingat(mysqli $koneksi): ?int
 }
 
 /** Hapus cookie & token "ingat saya". */
-function hapus_cookie_ingat(mysqli $koneksi): void
+function hapus_cookie_ingat(PDO $koneksi): void
 {
     $raw = $_COOKIE['ingat'] ?? '';
     if (is_string($raw) && str_contains($raw, ':')) {
         [$selector] = explode(':', $raw, 2);
         $stmt = $koneksi->prepare("DELETE FROM auth_token WHERE selector = ?");
-        $stmt->bind_param('s', $selector);
+        $stmt->bindValue(1, $selector, PDO::PARAM_STR);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
     }
     setcookie('ingat', '', ['expires' => time() - 3600, 'path' => '/']);
 }
 
 /** User yang sedang login (atau null). Ikut memeriksa cookie "ingat saya". */
-function user_saat_ini(mysqli $koneksi): ?array
+function user_saat_ini(PDO $koneksi): ?array
 {
     static $cache = false;
     if ($cache !== false) {
@@ -281,10 +168,10 @@ function user_saat_ini(mysqli $koneksi): ?array
     $stmt = $koneksi->prepare(
         "SELECT id, username, nama_lengkap, peran, status FROM users WHERE id = ?"
     );
-    $stmt->bind_param('i', $uid);
+    $stmt->bindValue(1, $uid, PDO::PARAM_INT);
     $stmt->execute();
-    $u = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $u = $stmt->fetch();
+    $stmt->closeCursor();
 
     if (!$u || $u['status'] !== 'aktif') {
         unset($_SESSION['uid']);
@@ -294,7 +181,7 @@ function user_saat_ini(mysqli $koneksi): ?array
 }
 
 /** Wajib login; kalau belum, alihkan ke halaman login. */
-function wajib_login(mysqli $koneksi): array
+function wajib_login(PDO $koneksi): array
 {
     $u = user_saat_ini($koneksi);
     if (!$u) {
@@ -305,7 +192,7 @@ function wajib_login(mysqli $koneksi): array
 }
 
 /** Wajib admin. */
-function wajib_admin(mysqli $koneksi): array
+function wajib_admin(PDO $koneksi): array
 {
     $u = wajib_login($koneksi);
     if ($u['peran'] !== 'admin') {
@@ -316,16 +203,20 @@ function wajib_admin(mysqli $koneksi): array
 }
 
 /** Salin kategori bawaan untuk seorang user. */
-function seed_kategori_untuk_user(mysqli $koneksi, int $user_id): void
+function seed_kategori_untuk_user(PDO $koneksi, int $user_id): void
 {
     $stmt = $koneksi->prepare(
-        "INSERT IGNORE INTO kategori (user_id, nama, tipe, ikon, warna) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO kategori (user_id, nama, tipe, ikon, warna) VALUES (?, ?, ?, ?, ?) ON CONFLICT (user_id, nama, tipe) DO NOTHING"
     );
     foreach (KATEGORI_DEFAULT as [$nama, $tipe, $ikon, $warna]) {
-        $stmt->bind_param('issss', $user_id, $nama, $tipe, $ikon, $warna);
+        $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
+        $stmt->bindValue(2, $nama, PDO::PARAM_STR);
+        $stmt->bindValue(3, $tipe, PDO::PARAM_STR);
+        $stmt->bindValue(4, $ikon, PDO::PARAM_STR);
+        $stmt->bindValue(5, $warna, PDO::PARAM_STR);
         $stmt->execute();
     }
-    $stmt->close();
+    $stmt->closeCursor();
 }
 
 /**
@@ -363,37 +254,38 @@ function topbar_user(array $user): string
  * ================================================================== */
 
 /** Daftar kategori milik satu user (opsional difilter per tipe). */
-function ambil_kategori(mysqli $koneksi, int $user_id, ?string $tipe = null): array
+function ambil_kategori(PDO $koneksi, int $user_id, ?string $tipe = null): array
 {
     if ($tipe !== null) {
         $stmt = $koneksi->prepare(
             "SELECT * FROM kategori WHERE user_id = ? AND tipe = ? ORDER BY nama"
         );
-        $stmt->bind_param('is', $user_id, $tipe);
+        $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
+        $stmt->bindValue(2, $tipe, PDO::PARAM_STR);
     } else {
         $stmt = $koneksi->prepare(
             "SELECT * FROM kategori WHERE user_id = ? ORDER BY tipe, nama"
         );
-        $stmt->bind_param('i', $user_id);
+        $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
     }
     $stmt->execute();
-    $res = $stmt->get_result();
+    $res = $stmt;
     $data = [];
-    while ($row = $res->fetch_assoc()) {
+    while ($row = $res->fetch()) {
         $data[] = $row;
     }
-    $stmt->close();
+    $stmt->closeCursor();
     return $data;
 }
 
 /** Saldo awal milik satu user. */
-function saldo_awal_user(mysqli $koneksi, int $user_id): float
+function saldo_awal_user(PDO $koneksi, int $user_id): float
 {
     $stmt = $koneksi->prepare("SELECT saldo_awal FROM saldo WHERE user_id = ?");
-    $stmt->bind_param('i', $user_id);
+    $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
     $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $row = $stmt->fetch();
+    $stmt->closeCursor();
     return $row ? (float) $row['saldo_awal'] : 0.0;
 }
 

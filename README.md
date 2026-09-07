@@ -2,7 +2,7 @@
 
 Aplikasi web untuk mencatat pemasukan & pengeluaran harian, memantau saldo,
 melihat laporan per kategori, dan mencetak laporan keuangan ke PDF.
-Dibangun dengan **PHP + MySQL/MariaDB** tanpa framework maupun proses build —
+Dibangun dengan **PHP + PostgreSQL (Neon)** tanpa framework maupun proses build —
 cukup taruh di web server dan jalankan.
 
 Mendukung **banyak pengguna** (multi-user): tiap akun punya transaksi, kategori,
@@ -100,8 +100,8 @@ dan saldo sendiri yang terpisah.
 
 | Bagian | Dipakai |
 |---|---|
-| Bahasa | PHP 8.0+ (`mysqli`, `mysqlnd`, `mbstring`) |
-| Basis data | MySQL 5.7+ / MariaDB 10.4+ |
+| Bahasa | PHP 8.2+ (`pdo_pgsql`, `mbstring`) |
+| Basis data | PostgreSQL 16+ / Neon |
 | Antarmuka | Bootstrap 5.3, Font Awesome 6.4, Chart.js *(via CDN)* + CSS/JS sendiri |
 | Build tool | — (tidak ada; tidak butuh Composer/Node) |
 
@@ -114,7 +114,7 @@ dan saldo sendiri yang terpisah.
 
 | Berkas | Fungsi |
 |---|---|
-| `koneksi.php` | Koneksi DB + **migrasi skema otomatis** + kumpulan fungsi bantu (CSRF, auth, kategori, tabel transaksi, dll) |
+| `koneksi.php` | Bootstrap koneksi/sesi + kumpulan fungsi bantu (CSRF, auth, kategori, tabel transaksi, dll) |
 | `auth.php` | Penjaga halaman: di-`require` oleh halaman terkunci; menyediakan `$USER`, `$UID` |
 | `login.php` · `register.php` · `logout.php` | Halaman publik autentikasi |
 | `index.php` | Dashboard |
@@ -134,80 +134,21 @@ dan saldo sendiri yang terpisah.
 
 ---
 
-## ✅ Kebutuhan
+## ✅ Kebutuhan dan deployment
 
-- **PHP 8.0 atau lebih baru** dengan ekstensi `mysqli`, `mysqlnd`, `mbstring` (aktif secara bawaan di XAMPP/Laragon).
-- **MySQL / MariaDB** yang berjalan.
-- Peramban modern (Chrome/Edge/Firefox) untuk fitur cetak PDF.
+Branch `deployvercel` memakai **PHP 8.2+**, ekstensi `pdo_pgsql` dan `mbstring`,
+serta **PostgreSQL**. Lihat [panduan Vercel + Neon](DEPLOY_VERCEL.md).
 
----
-
-## 🚀 Cara set up & menjalankan
-
-### Langkah 1 — Ambil kode
+Untuk lokal, jalankan `database/schema.sql` pada database PostgreSQL kosong,
+set environment `DATABASE_URL`, lalu:
 
 ```bash
-git clone https://github.com/agusdipta/Dashboard-Keuangan.git
+php -S localhost:8000 api/index.php
 ```
 
-Letakkan folder proyek di dalam **document root** web server
-(misal `C:\xampp\htdocs\catatanuang` untuk XAMPP, atau `laragon\www\...` untuk Laragon).
-
-### Langkah 2 — Buat database kosong
-
-Nama database default: **`db_keuangan`**.
-
-- Lewat **phpMyAdmin**: buka `http://localhost/phpmyadmin` → **New** → nama `db_keuangan` → Create.
-- Atau lewat terminal:
-
-  ```bash
-  mysql -u root -e "CREATE DATABASE db_keuangan CHARACTER SET utf8mb4"
-  ```
-
-> **Tabel dibuat otomatis.** Saat aplikasi pertama kali dibuka, `koneksi.php`
-> membuat semua tabel, kolom, indeks, dan kategori bawaan yang diperlukan
-> (aman dijalankan berulang). Impor `db_keuangan.sql` **hanya** bila ingin
-> memuat data contoh.
-
-### Langkah 3 — Sesuaikan koneksi database (bila perlu)
-
-Buka `koneksi.php`, baris pengaturan koneksi:
-
-```php
-$koneksi = new mysqli("localhost", "root", "", "db_keuangan");
-//                      host        user   pass  nama_database
-```
-
-Ubah `user` / `pass` bila MySQL kamu memakai kata sandi.
-
-### Langkah 4 — Jalankan
-
-**Opsi A — XAMPP / Laragon (Apache + MySQL)**
-
-1. Start **Apache** dan **MySQL** dari panel kontrol.
-2. Buka di peramban:
-
-   ```
-   http://localhost/<nama-folder-proyek>/
-   ```
-
-**Opsi B — Server bawaan PHP (tanpa Apache)**
-
-MySQL/MariaDB tetap harus berjalan (mis. dari XAMPP), lalu di dalam folder proyek:
-
-```bash
-php -S localhost:8000
-```
-
-Buka `http://localhost:8000`. Hentikan dengan `Ctrl+C`.
-
-### Langkah 5 — Buat akun admin pertama
-
-Aplikasi akan mengarahkan ke halaman **Masuk**. Klik **"Buat akun admin pertama"**,
-isi nama, *username*, dan kata sandi (min. 8 karakter).
-Akun pertama ini otomatis menjadi **admin** dan langsung aktif.
-
-Selesai — aplikasi siap dipakai. 🎉
+File `.env` tidak dimuat otomatis. Gunakan environment shell atau pengaturan
+Vercel. Akun pertama yang didaftarkan menjadi admin aktif; akun berikutnya
+menunggu persetujuan admin.
 
 ---
 
@@ -224,21 +165,22 @@ Selesai — aplikasi siap dipakai. 🎉
 | Tabel | Isi |
 |---|---|
 | `users` | Akun: `username`, `password` (hash), `nama_lengkap`, `peran` (admin/user), `status` (aktif/pending/nonaktif), `gagal_login`, `kunci_sampai` |
+| `app_session` | Sesi login bersama antar-instance Vercel |
 | `auth_token` | Token *cookie* "Ingat saya" |
 | `saldo` | Saldo awal per pengguna (`user_id`, `saldo_awal`) |
 | `kategori` | Kategori per pengguna (`nama`, `tipe`, `ikon`, `warna`, `user_id`) |
 | `transaksi` | `tanggal`, `keterangan`, `jumlah`, `tipe`, `kategori_id`, `user_id` |
 
-> Bila kamu mengimpor `db_keuangan.sql`, akan ada juga tabel lama `pemasukan` &
-> `pengeluaran` bawaan versi terdahulu — **tidak dipakai** dan boleh diabaikan/hapus.
+> `db_keuangan.sql` dan file migrasi/backup lama menggunakan MySQL; jangan
+> jalankan pada Neon. Skema PostgreSQL berada di `database/schema.sql`.
 
 ---
 
 ## ⚙️ Catatan
 
-- **Backup database** (Pengaturan → admin) menulis file `.sql` ke folder
-  `backup_keuangan/` **satu tingkat di atas** folder web root, agar tidak bisa
-  diunduh lewat peramban.
+- **Backup database** (Pengaturan → admin) mengunduh data semua user sebagai
+  SQL PostgreSQL. Pulihkan ke database kosong yang telah diberi skema; sesi dan
+  token login tidak disertakan.
 - **Tema** disimpan di `localStorage` peramban (per perangkat), bukan di server.
 - Aset CDN (Bootstrap/Font Awesome/Chart.js) butuh internet pada pemuatan pertama.
 - Uji aturan total struk: `node --test tests/receipt-parser.test.js` (Node hanya
@@ -247,5 +189,4 @@ Selesai — aplikasi siap dipakai. 🎉
   untuk membaca gambar struk sintetis dengan OCR/CDN asli. Memerlukan Node 22+,
   PHP, dan Chrome/Edge (atur `BROWSER_PATH` bila tidak terdeteksi). Pengujian
   memakai server lokal dan form sementara, tanpa membaca/menulis database aplikasi.
-- Untuk produksi, disarankan memakai user MySQL khusus (bukan `root`) dan
-  memindahkan kredensial ke variabel lingkungan / file konfigurasi terpisah.
+- Kredensial database dibaca dari environment `DATABASE_URL`. Jangan commit `.env`.

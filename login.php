@@ -18,10 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username_lama = $username;
 
     $stmt = $koneksi->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->bind_param('s', $username);
+    $stmt->bindValue(1, $username, PDO::PARAM_STR);
     $stmt->execute();
-    $u = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $u = $stmt->fetch();
+    $stmt->closeCursor();
 
     $terkunci = $u && $u['kunci_sampai'] && strtotime($u['kunci_sampai']) > time();
 
@@ -35,17 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($gagal >= 5) {
                 $kunci = date('Y-m-d H:i:s', time() + 15 * 60);
                 $s = $koneksi->prepare("UPDATE users SET gagal_login = ?, kunci_sampai = ? WHERE id = ?");
-                $s->bind_param('isi', $gagal, $kunci, $u['id']);
+                $s->bindValue(1, $gagal, PDO::PARAM_INT);
+                $s->bindValue(2, $kunci, PDO::PARAM_STR);
+                $s->bindValue(3, $u['id'], PDO::PARAM_INT);
                 $error = "Terlalu banyak percobaan gagal. Akun dikunci selama 15 menit.";
             } else {
                 $s = $koneksi->prepare("UPDATE users SET gagal_login = ? WHERE id = ?");
-                $s->bind_param('ii', $gagal, $u['id']);
+                $s->bindValue(1, $gagal, PDO::PARAM_INT);
+                $s->bindValue(2, $u['id'], PDO::PARAM_INT);
                 if ($gagal >= 3) {
                     $error .= " Sisa " . (5 - $gagal) . " percobaan sebelum akun dikunci.";
                 }
             }
             $s->execute();
-            $s->close();
+            $s->closeCursor();
         }
     } elseif ($u['status'] === 'pending') {
         $error = "Akun kamu masih menunggu persetujuan admin.";
@@ -53,9 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Akun kamu dinonaktifkan. Hubungi admin.";
     } else {
         $s = $koneksi->prepare("UPDATE users SET gagal_login = 0, kunci_sampai = NULL WHERE id = ?");
-        $s->bind_param('i', $u['id']);
+        $s->bindValue(1, $u['id'], PDO::PARAM_INT);
         $s->execute();
-        $s->close();
+        $s->closeCursor();
 
         session_regenerate_id(true);
         $_SESSION['uid'] = (int) $u['id'];
@@ -67,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$jumlah_user = (int) $koneksi->query("SELECT COUNT(*) AS n FROM users WHERE status <> 'nonaktif'")->fetch_assoc()['n'];
+$jumlah_user = (int) $koneksi->query("SELECT COUNT(*) AS n FROM users WHERE status <> 'nonaktif'")->fetch()['n'];
 ?>
 <!DOCTYPE html>
 <html lang="id">

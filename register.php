@@ -9,13 +9,16 @@ if (user_saat_ini($koneksi)) {
 // Sudah ada admin aktif?
 $ada_admin = (int) $koneksi->query(
     "SELECT COUNT(*) AS n FROM users WHERE peran = 'admin' AND status = 'aktif'"
-)->fetch_assoc()['n'] > 0;
+)->fetch()['n'] > 0;
 
 $error = '';
 $lama  = ['nama' => '', 'username' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
+    // Serialisasi pendaftaran agar hanya akun pertama menjadi admin.
+    $koneksi->exec('LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE');
+    $ada_admin = (int) $koneksi->query("SELECT COUNT(*) FROM users WHERE peran = 'admin'")->fetchColumn() > 0;
     $nama     = trim($_POST['nama'] ?? '');
     $username = trim($_POST['username'] ?? '');
     $pw       = (string) ($_POST['password'] ?? '');
@@ -38,12 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$err) {
         $s = $koneksi->prepare("SELECT id FROM users WHERE username = ?");
-        $s->bind_param('s', $username);
+        $s->bindValue(1, $username, PDO::PARAM_STR);
         $s->execute();
-        if ($s->get_result()->fetch_assoc()) {
+        if ($s->fetch()) {
             $err[] = 'Username sudah dipakai, pilih yang lain.';
         }
-        $s->close();
+        $s->closeCursor();
     }
 
     if (!$err) {
@@ -52,12 +55,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hash   = password_hash($pw, PASSWORD_DEFAULT);
 
         $s = $koneksi->prepare(
-            "INSERT INTO users (username, password, nama_lengkap, peran, status) VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO users (username, password, nama_lengkap, peran, status) VALUES (?, ?, ?, ?, ?) RETURNING id"
         );
-        $s->bind_param('sssss', $username, $hash, $nama, $peran, $status);
+        $s->bindValue(1, $username, PDO::PARAM_STR);
+        $s->bindValue(2, $hash, PDO::PARAM_STR);
+        $s->bindValue(3, $nama, PDO::PARAM_STR);
+        $s->bindValue(4, $peran, PDO::PARAM_STR);
+        $s->bindValue(5, $status, PDO::PARAM_STR);
         $s->execute();
-        $uid = (int) $s->insert_id;
-        $s->close();
+        $uid = (int) $s->fetchColumn();
+        $s->closeCursor();
 
         if (!$ada_admin) {
             // Admin pertama mewarisi seluruh data lama yang belum berpemilik
@@ -67,16 +74,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Pastikan punya baris saldo & kategori
-        $s = $koneksi->prepare("INSERT IGNORE INTO saldo (user_id, saldo_awal) VALUES (?, 0)");
-        $s->bind_param('i', $uid);
+        $s = $koneksi->prepare("INSERT INTO saldo (user_id, saldo_awal) VALUES (?, 0) ON CONFLICT (user_id) DO NOTHING");
+        $s->bindValue(1, $uid, PDO::PARAM_INT);
         $s->execute();
-        $s->close();
+        $s->closeCursor();
 
         $s = $koneksi->prepare("SELECT COUNT(*) AS n FROM kategori WHERE user_id = ?");
-        $s->bind_param('i', $uid);
+        $s->bindValue(1, $uid, PDO::PARAM_INT);
         $s->execute();
-        $punya_kat = (int) $s->get_result()->fetch_assoc()['n'];
-        $s->close();
+        $punya_kat = (int) $s->fetch()['n'];
+        $s->closeCursor();
         if ($punya_kat === 0) {
             seed_kategori_untuk_user($koneksi, $uid);
         }

@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+vendor
+build
+writable
+tests
+*.sql
+README.md
+DEPLOY_VERCEL.md

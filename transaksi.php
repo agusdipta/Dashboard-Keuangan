@@ -26,10 +26,12 @@ $stmt = $koneksi->prepare(
      FROM transaksi
      WHERE user_id = ? AND tanggal BETWEEN ? AND ?"
 );
-$stmt->bind_param('iss', $UID, $tanggal_mulai, $tanggal_akhir);
+$stmt->bindValue(1, $UID, PDO::PARAM_INT);
+$stmt->bindValue(2, $tanggal_mulai, PDO::PARAM_STR);
+$stmt->bindValue(3, $tanggal_akhir, PDO::PARAM_STR);
 $stmt->execute();
-$agg = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$agg = $stmt->fetch();
+$stmt->closeCursor();
 
 $total     = (int) $agg['n'];
 $total_hal = max(1, (int) ceil($total / $per));
@@ -47,14 +49,18 @@ $stmt = $koneksi->prepare(
      ORDER BY t.tanggal DESC, t.id DESC
      LIMIT ? OFFSET ?"
 );
-$stmt->bind_param('issii', $UID, $tanggal_mulai, $tanggal_akhir, $per, $offset);
+$stmt->bindValue(1, $UID, PDO::PARAM_INT);
+$stmt->bindValue(2, $tanggal_mulai, PDO::PARAM_STR);
+$stmt->bindValue(3, $tanggal_akhir, PDO::PARAM_STR);
+$stmt->bindValue(4, $per, PDO::PARAM_INT);
+$stmt->bindValue(5, $offset, PDO::PARAM_INT);
 $stmt->execute();
-$res = $stmt->get_result();
+$res = $stmt;
 $rows = [];
-while ($r = $res->fetch_assoc()) {
+while ($r = $res->fetch()) {
     $rows[] = $r;
 }
-$stmt->close();
+$stmt->closeCursor();
 
 $flash  = get_flash();
 $dari   = $total ? $offset + 1 : 0;

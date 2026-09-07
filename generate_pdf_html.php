@@ -26,9 +26,11 @@ $stmt = $koneksi->prepare(
      WHERE t.user_id = ? AND t.tanggal BETWEEN ? AND ?
      ORDER BY t.tanggal ASC, t.id ASC"
 );
-$stmt->bind_param('iss', $UID, $tanggal_mulai, $tanggal_akhir);
+$stmt->bindValue(1, $UID, PDO::PARAM_INT);
+$stmt->bindValue(2, $tanggal_mulai, PDO::PARAM_STR);
+$stmt->bindValue(3, $tanggal_akhir, PDO::PARAM_STR);
 $stmt->execute();
-$res = $stmt->get_result();
+$res = $stmt;
 
 $rows         = [];
 $total_masuk  = 0.0;
@@ -36,7 +38,7 @@ $total_keluar = 0.0;
 $saldo_jalan  = (float) $saldo_awal;
 $kat          = [];
 
-while ($r = $res->fetch_assoc()) {
+while ($r = $res->fetch()) {
     $j = (float) $r['jumlah'];
     if ($r['tipe'] === 'pemasukan') {
         $total_masuk += $j;
@@ -50,7 +52,7 @@ while ($r = $res->fetch_assoc()) {
     $r['saldo_jalan'] = $saldo_jalan;
     $rows[] = $r;
 }
-$stmt->close();
+$stmt->closeCursor();
 arsort($kat);
 
 $net         = $total_masuk - $total_keluar;

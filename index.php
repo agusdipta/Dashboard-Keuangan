@@ -12,23 +12,25 @@ $bulan_lalu = (int) date('m', strtotime('first day of -1 month'));
 $tahun_lalu = (int) date('Y', strtotime('first day of -1 month'));
 
 /** Ambil transaksi satu bulan milik satu user, beserta data kategorinya. */
-function transaksi_bulan(mysqli $koneksi, int $user_id, int $bulan, int $tahun): array
+function transaksi_bulan(PDO $koneksi, int $user_id, int $bulan, int $tahun): array
 {
     $stmt = $koneksi->prepare(
         "SELECT t.*, k.nama AS kategori_nama, k.ikon AS kategori_ikon, k.warna AS kategori_warna
          FROM transaksi t
          LEFT JOIN kategori k ON k.id = t.kategori_id
-         WHERE t.user_id = ? AND MONTH(t.tanggal) = ? AND YEAR(t.tanggal) = ?
+         WHERE t.user_id = ? AND EXTRACT(MONTH FROM t.tanggal) = ? AND EXTRACT(YEAR FROM t.tanggal) = ?
          ORDER BY t.tanggal DESC, t.id DESC"
     );
-    $stmt->bind_param('iii', $user_id, $bulan, $tahun);
+    $stmt->bindValue(1, $user_id, PDO::PARAM_INT);
+    $stmt->bindValue(2, $bulan, PDO::PARAM_INT);
+    $stmt->bindValue(3, $tahun, PDO::PARAM_INT);
     $stmt->execute();
-    $res = $stmt->get_result();
+    $res = $stmt;
     $rows = [];
-    while ($row = $res->fetch_assoc()) {
+    while ($row = $res->fetch()) {
         $rows[] = $row;
     }
-    $stmt->close();
+    $stmt->closeCursor();
     return $rows;
 }
 

@@ -25,10 +25,11 @@ if (!in_array($tipe, ['pemasukan', 'pengeluaran'], true)) {
 $kategori_id = ($kategori_id !== '') ? (int) $kategori_id : null;
 if ($kategori_id !== null) {
     $stmt = $koneksi->prepare("SELECT tipe FROM kategori WHERE id = ? AND user_id = ?");
-    $stmt->bind_param('ii', $kategori_id, $UID);
+    $stmt->bindValue(1, $kategori_id, $kategori_id === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+    $stmt->bindValue(2, $UID, PDO::PARAM_INT);
     $stmt->execute();
-    $kat = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $kat = $stmt->fetch();
+    $stmt->closeCursor();
     if (!$kat) {
         $kategori_id = null;
     } elseif ($kat['tipe'] !== $tipe) {
@@ -47,9 +48,14 @@ $jumlah = (int) $jumlah_raw;
 $stmt = $koneksi->prepare(
     "INSERT INTO transaksi (tanggal, keterangan, jumlah, tipe, kategori_id, user_id) VALUES (?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('ssisii', $tanggal, $keterangan, $jumlah, $tipe, $kategori_id, $UID);
+$stmt->bindValue(1, $tanggal, PDO::PARAM_STR);
+$stmt->bindValue(2, $keterangan, PDO::PARAM_STR);
+$stmt->bindValue(3, $jumlah, PDO::PARAM_INT);
+$stmt->bindValue(4, $tipe, PDO::PARAM_STR);
+$stmt->bindValue(5, $kategori_id, $kategori_id === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+$stmt->bindValue(6, $UID, PDO::PARAM_INT);
 $stmt->execute();
-$stmt->close();
+$stmt->closeCursor();
 
 set_flash('Transaksi berhasil ditambahkan.');
 header('Location: index.php');

@@ -37,10 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kategori_id = ($kategori_id !== '') ? (int) $kategori_id : null;
     if ($kategori_id !== null) {
         $stmt = $koneksi->prepare("SELECT tipe FROM kategori WHERE id = ? AND user_id = ?");
-        $stmt->bind_param('ii', $kategori_id, $UID);
+        $stmt->bindValue(1, $kategori_id, $kategori_id === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $stmt->bindValue(2, $UID, PDO::PARAM_INT);
         $stmt->execute();
-        $kat = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
+        $kat = $stmt->fetch();
+        $stmt->closeCursor();
         if (!$kat) {
             $kategori_id = null;
         } elseif ($kat['tipe'] !== $tipe) {
@@ -51,14 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Pastikan transaksi memang milik user ini
     if (!$errors && $id > 0) {
         $cek = $koneksi->prepare("SELECT id FROM transaksi WHERE id = ? AND user_id = ?");
-        $cek->bind_param('ii', $id, $UID);
+        $cek->bindValue(1, $id, PDO::PARAM_INT);
+        $cek->bindValue(2, $UID, PDO::PARAM_INT);
         $cek->execute();
-        if (!$cek->get_result()->fetch_assoc()) {
-            $cek->close();
+        if (!$cek->fetch()) {
+            $cek->closeCursor();
             http_response_code(404);
             die('Transaksi tidak ditemukan. <a href="index.php">&larr; Kembali</a>');
         }
-        $cek->close();
+        $cek->closeCursor();
     }
 
     if (!$errors) {
@@ -66,9 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $koneksi->prepare(
             "UPDATE transaksi SET tanggal = ?, keterangan = ?, jumlah = ?, tipe = ?, kategori_id = ? WHERE id = ? AND user_id = ?"
         );
-        $stmt->bind_param('ssisiii', $tanggal, $keterangan, $jumlah, $tipe, $kategori_id, $id, $UID);
+        $stmt->bindValue(1, $tanggal, PDO::PARAM_STR);
+        $stmt->bindValue(2, $keterangan, PDO::PARAM_STR);
+        $stmt->bindValue(3, $jumlah, PDO::PARAM_INT);
+        $stmt->bindValue(4, $tipe, PDO::PARAM_STR);
+        $stmt->bindValue(5, $kategori_id, $kategori_id === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $stmt->bindValue(6, $id, PDO::PARAM_INT);
+        $stmt->bindValue(7, $UID, PDO::PARAM_INT);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
 
         set_flash('Transaksi berhasil diperbarui.');
         header('Location: ' . $kembali);
@@ -87,10 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     $id = (int) ($_GET['id'] ?? 0);
     $stmt = $koneksi->prepare("SELECT * FROM transaksi WHERE id = ? AND user_id = ?");
-    $stmt->bind_param('ii', $id, $UID);
+    $stmt->bindValue(1, $id, PDO::PARAM_INT);
+    $stmt->bindValue(2, $UID, PDO::PARAM_INT);
     $stmt->execute();
-    $data = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $data = $stmt->fetch();
+    $stmt->closeCursor();
 
     if (!$data) {
         http_response_code(404);

@@ -28,10 +28,9 @@ if ($ids) {
     $param = $ids;
     $param[] = $UID;
     $stmt = $koneksi->prepare("DELETE FROM transaksi WHERE id IN ($placeholder) AND user_id = ?");
-    $stmt->bind_param(str_repeat('i', count($param)), ...$param);
-    $stmt->execute();
-    $dihapus = $stmt->affected_rows;
-    $stmt->close();
+    $stmt->execute($param);
+    $dihapus = $stmt->rowCount();
+    $stmt->closeCursor();
 }
 
 if ($dihapus > 0) {

@@ -22,10 +22,12 @@ $stmt = $koneksi->prepare(
      FROM transaksi
      WHERE user_id = ? AND tanggal BETWEEN ? AND ?"
 );
-$stmt->bind_param('iss', $UID, $tanggal_mulai, $tanggal_akhir);
+$stmt->bindValue(1, $UID, PDO::PARAM_INT);
+$stmt->bindValue(2, $tanggal_mulai, PDO::PARAM_STR);
+$stmt->bindValue(3, $tanggal_akhir, PDO::PARAM_STR);
 $stmt->execute();
-$tot = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$tot = $stmt->fetch();
+$stmt->closeCursor();
 $total_pemasukan   = (float) $tot['masuk'];
 $total_pengeluaran = (float) $tot['keluar'];
 
@@ -43,14 +45,16 @@ $stmt = $koneksi->prepare(
      GROUP BY k.id, k.nama, k.ikon, k.warna
      ORDER BY total DESC"
 );
-$stmt->bind_param('iss', $UID, $tanggal_mulai, $tanggal_akhir);
+$stmt->bindValue(1, $UID, PDO::PARAM_INT);
+$stmt->bindValue(2, $tanggal_mulai, PDO::PARAM_STR);
+$stmt->bindValue(3, $tanggal_akhir, PDO::PARAM_STR);
 $stmt->execute();
-$res = $stmt->get_result();
+$res = $stmt;
 $semua_kategori = [];
-while ($row = $res->fetch_assoc()) {
+while ($row = $res->fetch()) {
     $semua_kategori[] = $row;
 }
-$stmt->close();
+$stmt->closeCursor();
 
 // 5 kategori teratas; sisanya digabung jadi satu baris "Lainnya"
 $rincian = array_slice($semua_kategori, 0, 5);

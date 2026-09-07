@@ -19,16 +19,17 @@ if (isset($_POST['update_saldo'])) {
         $saldo_baru = (float) $saldo_baru;
         $stmt = $koneksi->prepare(
             "INSERT INTO saldo (user_id, saldo_awal) VALUES (?, ?)
-             ON DUPLICATE KEY UPDATE saldo_awal = VALUES(saldo_awal)"
+             ON CONFLICT (user_id) DO UPDATE SET saldo_awal = EXCLUDED.saldo_awal"
         );
-        $stmt->bind_param('id', $UID, $saldo_baru);
+        $stmt->bindValue(1, $UID, PDO::PARAM_INT);
+        $stmt->bindValue(2, $saldo_baru, PDO::PARAM_STR);
         if ($stmt->execute()) {
             $pesan = "<div class='alert alert-success'>Saldo awal berhasil diperbarui!</div>";
             $saldo_awal = $saldo_baru;
         } else {
-            $pesan = "<div class='alert alert-danger'>Gagal memperbarui saldo awal: " . e($koneksi->error) . "</div>";
+            $pesan = "<div class='alert alert-danger'>Gagal memperbarui saldo awal: " . 'Silakan coba lagi.' . "</div>";
         }
-        $stmt->close();
+        $stmt->closeCursor();
     }
 }
 
@@ -50,17 +51,20 @@ if (isset($_POST['tambah_kategori'])) {
         $pesan = "<div class='alert alert-danger'>Nama dan tipe kategori wajib diisi dengan benar.</div>";
     } else {
         $stmt = $koneksi->prepare(
-            "INSERT INTO kategori (user_id, nama, tipe, ikon, warna) VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO kategori (user_id, nama, tipe, ikon, warna) VALUES (?, ?, ?, ?, ?) ON CONFLICT (user_id, nama, tipe) DO NOTHING RETURNING id"
         );
-        $stmt->bind_param('issss', $UID, $nama, $tipe, $ikon, $warna);
-        if ($stmt->execute()) {
+        $stmt->bindValue(1, $UID, PDO::PARAM_INT);
+        $stmt->bindValue(2, $nama, PDO::PARAM_STR);
+        $stmt->bindValue(3, $tipe, PDO::PARAM_STR);
+        $stmt->bindValue(4, $ikon, PDO::PARAM_STR);
+        $stmt->bindValue(5, $warna, PDO::PARAM_STR);
+        $stmt->execute();
+        if ($stmt->fetchColumn() !== false) {
             $pesan = "<div class='alert alert-success'>Kategori \"" . e($nama) . "\" ditambahkan.</div>";
-        } elseif ($koneksi->errno === 1062) {
-            $pesan = "<div class='alert alert-warning'>Kategori \"" . e($nama) . "\" untuk tipe tersebut sudah ada.</div>";
         } else {
-            $pesan = "<div class='alert alert-danger'>Gagal menambah kategori: " . e($koneksi->error) . "</div>";
+            $pesan = "<div class='alert alert-warning'>Kategori \"" . e($nama) . "\" untuk tipe tersebut sudah ada.</div>";
         }
-        $stmt->close();
+        $stmt->closeCursor();
     }
 }
 
@@ -71,14 +75,16 @@ if (isset($_POST['hapus_kategori'])) {
         $stmt = $koneksi->prepare(
             "UPDATE transaksi SET kategori_id = NULL WHERE kategori_id = ? AND user_id = ?"
         );
-        $stmt->bind_param('ii', $kat_id, $UID);
+        $stmt->bindValue(1, $kat_id, PDO::PARAM_INT);
+        $stmt->bindValue(2, $UID, PDO::PARAM_INT);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
 
         $stmt = $koneksi->prepare("DELETE FROM kategori WHERE id = ? AND user_id = ?");
-        $stmt->bind_param('ii', $kat_id, $UID);
+        $stmt->bindValue(1, $kat_id, PDO::PARAM_INT);
+        $stmt->bindValue(2, $UID, PDO::PARAM_INT);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
 
         $pesan = "<div class='alert alert-success'>Kategori dihapus. Transaksi terkait kini tanpa kategori.</div>";
     }
@@ -93,20 +99,21 @@ if ($is_admin && isset($_POST['user_aksi'])) {
     if ($target > 0 && $target !== $UID && isset($map[$aksi])) {
         $status_baru = $map[$aksi];
         $stmt = $koneksi->prepare("UPDATE users SET status = ? WHERE id = ?");
-        $stmt->bind_param('si', $status_baru, $target);
+        $stmt->bindValue(1, $status_baru, PDO::PARAM_STR);
+        $stmt->bindValue(2, $target, PDO::PARAM_INT);
         $stmt->execute();
-        $stmt->close();
+        $stmt->closeCursor();
 
         if ($aksi === 'setujui') {
-            $s = $koneksi->prepare("INSERT IGNORE INTO saldo (user_id, saldo_awal) VALUES (?, 0)");
-            $s->bind_param('i', $target);
+            $s = $koneksi->prepare("INSERT INTO saldo (user_id, saldo_awal) VALUES (?, 0) ON CONFLICT (user_id) DO NOTHING");
+            $s->bindValue(1, $target, PDO::PARAM_INT);
             $s->execute();
-            $s->close();
+            $s->closeCursor();
             $s = $koneksi->prepare("SELECT COUNT(*) AS n FROM kategori WHERE user_id = ?");
-            $s->bind_param('i', $target);
+            $s->bindValue(1, $target, PDO::PARAM_INT);
             $s->execute();
-            $n = (int) $s->get_result()->fetch_assoc()['n'];
-            $s->close();
+            $n = (int) $s->fetch()['n'];
+            $s->closeCursor();
             if ($n === 0) {
                 seed_kategori_untuk_user($koneksi, $target);
             }
@@ -117,57 +124,22 @@ if ($is_admin && isset($_POST['user_aksi'])) {
     }
 }
 
-/* ---- Backup database (admin, disimpan di luar folder web) ---- */
+/* ---- Backup data PostgreSQL: unduh langsung, tanpa menulis ke disk server. ---- */
 if ($is_admin && isset($_POST['backup_db'])) {
-    $backup_dir = __DIR__ . '/../../backup_keuangan';
-    if (!is_dir($backup_dir)) {
-        @mkdir($backup_dir, 0775, true);
-    }
-    if (is_dir($backup_dir) && !file_exists($backup_dir . '/.htaccess')) {
-        @file_put_contents($backup_dir . '/.htaccess', "Require all denied\nDeny from all\n");
-    }
-
-    if (!is_dir($backup_dir) || !is_writable($backup_dir)) {
-        $pesan = "<div class='alert alert-danger'>Folder backup tidak bisa dibuat/ditulis: " . e($backup_dir) . "</div>";
-    } else {
-        $tables = [];
-        $result = $koneksi->query("SHOW TABLES");
-        while ($row = $result->fetch_row()) {
-            $tables[] = $row[0];
+    header('Content-Type: application/sql; charset=utf-8');
+    header('Content-Disposition: attachment; filename="backup_' . date('Y-m-d_H-i-s') . '.sql"');
+    echo "-- Pulihkan pada database kosong yang sudah memakai database/schema.sql.\nBEGIN;\n";
+    foreach (['users', 'saldo', 'kategori', 'transaksi'] as $table) {
+        $rows = $koneksi->query('SELECT * FROM ' . $table . ' ORDER BY id');
+        while ($row = $rows->fetch()) {
+            $columns = implode(', ', array_keys($row));
+            $values = array_map(fn($v) => $v === null ? 'NULL' : $koneksi->quote((string) $v), array_values($row));
+            echo 'INSERT INTO ' . $table . ' (' . $columns . ') VALUES (' . implode(', ', $values) . ");\n";
         }
-
-        $nama_file = 'backup_' . date("Y-m-d_H-i-s") . '.sql';
-        $handle = fopen($backup_dir . '/' . $nama_file, 'w');
-
-        foreach ($tables as $table) {
-            $result = $koneksi->query("SELECT * FROM `$table`");
-            $num_fields = $result->field_count;
-
-            fwrite($handle, "DROP TABLE IF EXISTS `$table`;\n");
-            $row2 = $koneksi->query("SHOW CREATE TABLE `$table`")->fetch_row();
-            fwrite($handle, $row2[1] . ";\n\n");
-
-            while ($row = $result->fetch_row()) {
-                fwrite($handle, "INSERT INTO `$table` VALUES(");
-                for ($j = 0; $j < $num_fields; $j++) {
-                    if (isset($row[$j])) {
-                        fwrite($handle, "'" . $koneksi->real_escape_string($row[$j]) . "'");
-                    } else {
-                        fwrite($handle, "NULL");
-                    }
-                    if ($j < ($num_fields - 1)) {
-                        fwrite($handle, ',');
-                    }
-                }
-                fwrite($handle, ");\n");
-            }
-            fwrite($handle, "\n\n");
-        }
-
-        fclose($handle);
-        $pesan = "<div class='alert alert-success'>Backup database berhasil dibuat: <code>" . e($nama_file)
-            . "</code> (disimpan di folder <code>backup_keuangan</code> di luar folder web).</div>";
+        echo "SELECT setval(pg_get_serial_sequence('$table', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM $table;\n";
     }
+    echo "COMMIT;\n";
+    exit;
 }
 
 $daftar_kategori = ambil_kategori($koneksi, $UID);
@@ -177,9 +149,9 @@ if ($is_admin) {
     $r = $koneksi->query(
         "SELECT id, username, nama_lengkap, peran, status, created_at
          FROM users
-         ORDER BY FIELD(status,'pending','aktif','nonaktif'), id"
+         ORDER BY CASE status WHEN 'pending' THEN 1 WHEN 'aktif' THEN 2 ELSE 3 END, id"
     );
-    while ($row = $r->fetch_assoc()) {
+    while ($row = $r->fetch()) {
         $daftar_user[] = $row;
     }
 }
@@ -252,7 +224,7 @@ $jml_pending = count(array_filter($daftar_user, fn($u) => $u['status'] === 'pend
                             <span class="card-sub">admin</span>
                         </div>
                         <div class="card-body">
-                            <p>Backup seluruh database (semua user). File disimpan di folder <code>backup_keuangan</code> di luar folder web.</p>
+                            <p>Unduh backup data semua user dalam format SQL PostgreSQL. Sesi login tidak disertakan. Simpan file ini di tempat aman.</p>
                             <form action="pengaturan.php" method="post">
                                 <?= csrf_field() ?>
                                 <button type="submit" name="backup_db" class="btn btn-success">
