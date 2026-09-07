@@ -11,6 +11,9 @@ set_exception_handler(function (Throwable $error): void {
     // Jangan menulis connection string atau nilai query ke respons/log publik.
     $label = $error instanceof PDOException ? ' [' . database_error_label($error) . ']' : '';
     error_log('FinTrack: ' . get_class($error) . $label . ' at ' . basename($error->getFile()) . ':' . $error->getLine());
+    if ($error instanceof PDOException && !($koneksi instanceof PDO)) {
+        error_log('FinTrack connection detail: ' . database_connection_detail($error, getenv('DATABASE_URL') ?: ''));
+    }
     http_response_code(500);
     echo 'Layanan sementara tidak tersedia. Silakan coba lagi.';
 });

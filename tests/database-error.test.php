@@ -19,3 +19,19 @@ foreach ($cases as $message => $expected) {
     }
 }
 echo "PASS: database errors classified without exposing raw messages.\n";
+
+$url = 'postgresql://private-user:private%40password@private-host/private-db?sslmode=require';
+$message = "SQLSTATE[08006] [7] authentication failed\nprivate-user private@password private%40password private-host private-db $url";
+$detail = database_connection_detail(new PDOException($message), $url);
+foreach (['private', 'postgresql://', "\n"] as $secret) {
+    if (str_contains($detail, $secret)) {
+        throw new RuntimeException('Connection diagnostic leaked a secret or newline.');
+    }
+}
+if (!str_contains($detail, 'SQLSTATE[08006] [7] authentication failed')) {
+    throw new RuntimeException('Connection diagnostic lost the error reason.');
+}
+if (database_connection_detail(new PDOException('private-password'), '') !== 'Connection URL could not be parsed; details omitted.') {
+    throw new RuntimeException('Malformed URL must not expose error details.');
+}
+echo "PASS: connection details retain the reason and redact credentials.\n";
