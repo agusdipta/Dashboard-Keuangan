@@ -11,9 +11,12 @@ final class DatabaseSession implements SessionHandlerInterface
         }
         $lock = $this->db->prepare('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))');
         $lock->execute([$id]);
+        $lock->closeCursor();
         $stmt = $this->db->prepare('SELECT data FROM app_session WHERE id = ? AND expires_at > CURRENT_TIMESTAMP');
         $stmt->execute([$id]);
-        return $stmt->fetchColumn() ?: '';
+        $data = $stmt->fetchColumn() ?: '';
+        $stmt->closeCursor();
+        return $data;
     }
     public function write(string $id, string $data): bool
     {
@@ -24,12 +27,16 @@ final class DatabaseSession implements SessionHandlerInterface
         $stmt = $this->db->prepare("INSERT INTO app_session (id, data, expires_at)
             VALUES (?, ?, CURRENT_TIMESTAMP + INTERVAL '2 hours')
             ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, expires_at = EXCLUDED.expires_at");
-        return $stmt->execute([$id, $data]);
+        $written = $stmt->execute([$id, $data]);
+        $stmt->closeCursor();
+        return $written;
     }
     public function destroy(string $id): bool
     {
         $stmt = $this->db->prepare('DELETE FROM app_session WHERE id = ?');
-        return $stmt->execute([$id]);
+        $deleted = $stmt->execute([$id]);
+        $stmt->closeCursor();
+        return $deleted;
     }
     public function gc(int $max_lifetime): int|false
     {
