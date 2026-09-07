@@ -2,6 +2,7 @@
 /** PostgreSQL lokal atau Neon; rahasia hanya dibaca dari environment. */
 date_default_timezone_set('Asia/Makassar');
 require_once __DIR__ . '/database_error.php';
+require_once __DIR__ . '/database_dsn.php';
 
 set_exception_handler(function (Throwable $error): void {
     global $koneksi;
@@ -33,8 +34,7 @@ if (strpbrk($host . $dbname, ";\r\n") !== false
     throw new RuntimeException('Konfigurasi database tidak valid.');
 }
 $koneksi = new PDO(
-    'pgsql:host=' . $host . ';port=' . ($url['port'] ?? 5432)
-        . ';dbname=' . $dbname . ';sslmode=' . $sslmode . ';connect_timeout=10',
+    postgres_dsn($host, $url['port'] ?? 5432, $dbname, $sslmode),
     rawurldecode($url['user']),
     rawurldecode($url['pass'] ?? ''),
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
