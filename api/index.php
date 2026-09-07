@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/html; charset=utf-8');
 // Hanya halaman dan aset ini yang dapat diakses dari internet.
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $pages = ['index.php', 'login.php', 'register.php', 'logout.php', 'transaksi.php',
