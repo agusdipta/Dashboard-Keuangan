@@ -38,6 +38,7 @@ $koneksi = new PDO(
     rawurldecode($url['user']),
     rawurldecode($url['pass'] ?? ''),
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-     PDO::ATTR_EMULATE_PREPARES => false]
+     // Neon pool memakai PgBouncer transaction mode; jangan simpan prepared statement di server.
+     PDO::ATTR_EMULATE_PREPARES => true]
 );
 $koneksi->exec("SET TIME ZONE 'Asia/Makassar'");
