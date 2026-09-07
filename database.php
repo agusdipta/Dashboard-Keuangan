@@ -1,6 +1,7 @@
 <?php
 /** PostgreSQL lokal atau Neon; rahasia hanya dibaca dari environment. */
 date_default_timezone_set('Asia/Makassar');
+require_once __DIR__ . '/database_error.php';
 
 set_exception_handler(function (Throwable $error): void {
     global $koneksi;
@@ -8,7 +9,8 @@ set_exception_handler(function (Throwable $error): void {
         $koneksi->rollBack();
     }
     // Jangan menulis connection string atau nilai query ke respons/log publik.
-    error_log('FinTrack: ' . get_class($error) . ' at ' . basename($error->getFile()) . ':' . $error->getLine());
+    $label = $error instanceof PDOException ? ' [' . database_error_label($error) . ']' : '';
+    error_log('FinTrack: ' . get_class($error) . $label . ' at ' . basename($error->getFile()) . ':' . $error->getLine());
     http_response_code(500);
     echo 'Layanan sementara tidak tersedia. Silakan coba lagi.';
 });
