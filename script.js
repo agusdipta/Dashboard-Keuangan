@@ -49,6 +49,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelectorAll("input.js-rupiah").forEach(pasangFormatRupiah)
 
+  // Form transaksi: tombol jenis + chip kategori/tanggal mengisi <select>/<input> asli.
+  // Listener saring kategori (inline di halaman) terpasang lebih dulu, jadi opsi sudah diperbarui saat sync().
+  document.querySelectorAll("[data-transaction-fields]").forEach((fs) => {
+    const { tipe, kategori_id: kat, tanggal: tgl } = fs.form.elements
+    const toggle = fs.querySelector("[data-tipe-toggle]")
+    const katChips = fs.querySelector("[data-kategori-chips]")
+    const tglChips = fs.querySelector("[data-tanggal-chips]")
+    const pilih = (el, value) => {
+      el.value = value
+      el.dispatchEvent(new Event("change", { bubbles: true }))
+    }
+
+    const sync = () => {
+      fs.dataset.tipe = tipe.value
+      toggle.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.value === tipe.value)))
+      let ada = false
+      katChips.querySelectorAll(".chip").forEach((c) => {
+        c.hidden = c.dataset.tipe !== tipe.value
+        ada ||= !c.hidden
+        c.setAttribute("aria-pressed", String(c.dataset.value === kat.value))
+      })
+      katChips.querySelector("[data-kategori-empty]").hidden = ada
+      tglChips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.value === tgl.value)))
+    }
+
+    toggle.addEventListener("click", (e) => {
+      const b = e.target.closest("button")
+      if (b && b.dataset.value !== tipe.value) pilih(tipe, b.dataset.value)
+    })
+    katChips.addEventListener("click", (e) => {
+      const c = e.target.closest(".chip")
+      if (c) pilih(kat, kat.value === c.dataset.value ? "" : c.dataset.value)
+    })
+    tglChips.addEventListener("click", (e) => {
+      const c = e.target.closest(".chip")
+      if (c) pilih(tgl, c.dataset.value)
+    })
+    tipe.addEventListener("change", sync)
+    kat.addEventListener("change", sync)
+    tgl.addEventListener("input", sync)
+    tgl.addEventListener("change", sync)
+
+    fs.classList.add("is-enhanced")
+    toggle.hidden = katChips.hidden = tglChips.hidden = false
+    sync()
+  })
+
   // Notifikasi flash: hilang otomatis setelah 4 detik
   document.querySelectorAll(".app-flash").forEach((el) => {
     setTimeout(() => {
@@ -76,14 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
       content.style.marginLeft = "var(--sidebar-width)"
     }
   })
-
-  // Set current date to the date input by default
-  const dateInput = document.getElementById("tanggal")
-  if (dateInput) {
-    const today = new Date()
-    const formattedDate = today.toISOString().substr(0, 10)
-    dateInput.value = formattedDate
-  }
 
   // Tema terang / gelap
   const rootEl = document.documentElement

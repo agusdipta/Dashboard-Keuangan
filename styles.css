@@ -1,46 +1,50 @@
 /* ===================================================================
-   FinTrack — tema "gradient + glass" modern, aksen biru diperhalus
+   FinTrack — tema tenang: latar krem, kartu putih, satu aksen indigo
    =================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root {
   /* Warna aksen */
-  --primary-color: #4361ee;
-  --primary-strong: #3a3fd0;
-  --primary-soft: rgba(67, 97, 238, 0.10);
-  --primary-gradient: linear-gradient(135deg, #4361ee 0%, #5b6cff 45%, #7c5cff 100%);
-  --secondary-color: #3f37c9;
+  --primary-color: #3346d3;
+  --primary-strong: #2433a8;
+  --primary-soft: rgba(51, 70, 211, 0.09);
+  --primary-gradient: #3346d3;
+  --secondary-color: #2433a8;
 
-  --success-color: #16a34a;
-  --danger-color: #ef4444;
+  --success-color: #0e7a56;
+  --danger-color: #b4461f;
   --warning-color: #f59e0b;
   --info-color: #2196f3;
-  --gray-color: #6b7280;
+  --gray-color: #5e6270;
 
   /* Permukaan & latar */
-  --bg: #eef1f8;
-  --bg-gradient:
-    radial-gradient(1100px 560px at 100% -10%, rgba(124, 92, 255, 0.16), transparent 60%),
-    radial-gradient(900px 460px at -10% 110%, rgba(67, 97, 238, 0.14), transparent 55%),
-    #eef1f8;
+  --bg: #f5f4ef;
+  --bg-gradient: #f5f4ef;
   --surface: #ffffff;
-  --surface-2: #f6f8fc;
-  --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(255, 255, 255, 0.60);
-  --border: #e6e9f2;
+  --surface-2: #f0eee7;
+  --glass-bg: #ffffff;
+  --glass-border: #e6e3da;
+  --border: #e6e3da;
+
+  /* Kartu saldo (selalu gelap) */
+  --hero-bg: #17191e;
+  --hero-text: #ffffff;
+  --hero-muted: #b9bcc6;
+  --hero-tile: rgba(255, 255, 255, 0.06);
 
   /* Teks */
-  --text: #1f2430;
-  --text-muted: #6b7280;
-  --dark-color: #1f2430;
+  --text: #17191e;
+  --text-muted: #5e6270;
+  --dark-color: #17191e;
   --light-color: #f8f9fa;
 
   /* Bentuk & bayangan */
-  --card-border-radius: 16px;
-  --radius-sm: 10px;
+  --card-border-radius: 20px;
+  --radius-sm: 12px;
   --radius-pill: 999px;
-  --box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 2px 6px rgba(16, 24, 40, 0.06);
-  --shadow-lg: 0 24px 48px -16px rgba(31, 41, 55, 0.22);
+  --box-shadow: 0 1px 2px rgba(23, 25, 30, 0.04);
+  --shadow-sm: 0 1px 2px rgba(23, 25, 30, 0.05);
+  --shadow-lg: 0 12px 28px -14px rgba(23, 25, 30, 0.22);
 
   --sidebar-width: 250px;
   --header-height: 70px;
@@ -50,31 +54,34 @@
 
 /* Mode gelap */
 [data-theme="dark"] {
-  --primary-color: #6d83ff;
-  --primary-strong: #566cf0;
-  --primary-soft: rgba(109, 131, 255, 0.16);
-  --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
-  --secondary-color: #4338ca;
+  --primary-color: #8d9bff;
+  --primary-strong: #6f7ff5;
+  --primary-soft: rgba(141, 155, 255, 0.14);
+  --primary-gradient: #5566e8;
+  --secondary-color: #4453d6;
 
-  --bg: #0f1420;
-  --bg-gradient:
-    radial-gradient(1000px 520px at 100% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
-    radial-gradient(800px 420px at -10% 110%, rgba(139, 92, 246, 0.16), transparent 55%),
-    #0f1420;
-  --surface: #171c28;
-  --surface-2: #1e2432;
-  --glass-bg: rgba(23, 28, 40, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --border: #2a3142;
+  --success-color: #34a97e;
+  --danger-color: #d9693b;
 
-  --text: #e6e9f1;
-  --text-muted: #9aa4b2;
-  --dark-color: #e6e9f1;
-  --light-color: #1e2432;
+  --bg: #111317;
+  --bg-gradient: #111317;
+  --surface: #1a1d23;
+  --surface-2: #23272f;
+  --glass-bg: #1a1d23;
+  --glass-border: #2c3039;
+  --border: #2c3039;
 
-  --box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 26px 52px -18px rgba(0, 0, 0, 0.6);
+  --hero-bg: #252a36;
+  --hero-tile: rgba(255, 255, 255, 0.07);
+
+  --text: #ecedef;
+  --text-muted: #9ea3ae;
+  --dark-color: #ecedef;
+  --light-color: #23272f;
+
+  --box-shadow: none;
+  --shadow-sm: none;
+  --shadow-lg: 0 16px 32px -16px rgba(0, 0, 0, 0.6);
 
   color-scheme: dark;
 }
@@ -86,7 +93,7 @@
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   background: var(--bg-gradient);
   background-attachment: fixed;
   color: var(--text);
@@ -106,10 +113,7 @@ body {
 
 /* Cegah grid/flex item memaksa halaman melebar (overflow horizontal) */
 .content,
-.dashboard-summary > *,
-.dashboard-charts > *,
-.dashboard-cards > *,
-.transaction-history > *,
+.dash-row > *,
 .row > [class*="col-"],
 .card {
   min-width: 0;
@@ -122,26 +126,30 @@ body {
 /* ---------------- Sidebar ---------------- */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
-  color: #fff;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  color: var(--text);
   position: fixed;
   height: 100vh;
   overflow-y: auto;
   transition: width 0.3s ease;
   z-index: 1000;
-  box-shadow: var(--shadow-lg);
 }
 
 .sidebar-header {
-  padding: 22px 20px;
-  text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 26px 24px 8px;
 }
 
 .sidebar-header h3 {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
+  font-weight: 800;
   margin: 0;
-  letter-spacing: 0.3px;
+  letter-spacing: -0.02em;
+}
+
+.sidebar-header h3 i {
+  color: var(--primary-color);
+  margin-right: 6px;
 }
 
 .sidebar-menu {
@@ -158,22 +166,23 @@ body {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
   text-decoration: none;
   border-radius: 12px;
-  transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .sidebar-menu li a:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  transform: translateX(2px);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .sidebar-menu li.active a {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  background: var(--primary-soft);
+  color: var(--primary-color);
+  font-weight: 700;
 }
 
 .sidebar-menu li a i {
@@ -186,18 +195,22 @@ body {
 .content {
   flex: 1;
   margin-left: var(--sidebar-width);
-  padding: 26px;
+  padding: 28px clamp(16px, 3vw, 40px) 48px;
+}
+
+.content > * {
+  max-width: 1160px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .content-header {
-  margin-bottom: 28px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
 }
 
 .content-header h1 {
-  font-size: 1.7rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 800;
   color: var(--text);
   letter-spacing: -0.02em;
   margin: 0;
@@ -208,70 +221,231 @@ body {
   margin-right: 10px;
 }
 
-/* ---------------- Kartu ringkasan ---------------- */
-.dashboard-summary {
+/* ---------------- Dashboard ---------------- */
+.dash-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  align-items: start;
 }
 
-.summary-card {
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(14px) saturate(150%);
-  backdrop-filter: blur(14px) saturate(150%);
-  border: 1px solid var(--glass-border);
+.dash-row > .card {
+  margin-bottom: 0;
+}
+
+.dash-row-hero {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+}
+
+.dash-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dash-stack > .card {
+  margin-bottom: 0;
+}
+
+.saldo-card {
+  background: var(--hero-bg);
+  color: var(--hero-text);
   border-radius: var(--card-border-radius);
-  padding: 20px;
-  box-shadow: var(--box-shadow);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.saldo-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.saldo-label {
+  margin: 0 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--hero-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.saldo-amount {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.saldo-card .trend {
+  margin-top: 0;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+
+.saldo-card .trend.good { color: #7be0b5; background: rgba(123, 224, 181, 0.14); }
+.saldo-card .trend.bad { color: #f5a27c; background: rgba(245, 162, 124, 0.16); }
+.saldo-card .trend.flat { color: var(--hero-muted); background: var(--hero-tile); }
+
+.saldo-bar {
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.saldo-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #f08a5d;
+}
+
+.saldo-note {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: var(--hero-muted);
+}
+
+.saldo-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.saldo-stat {
   display: flex;
   align-items: center;
-  gap: 16px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--hero-tile);
 }
 
-.summary-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+.saldo-stat > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.card-icon {
-  width: 58px;
-  height: 58px;
-  min-width: 58px;
-  border-radius: 16px;
+.saldo-stat-ic {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
-  color: #fff;
-  background: var(--primary-gradient);
-  box-shadow: 0 10px 22px -8px rgba(67, 97, 238, 0.55);
 }
 
-.income .card-icon {
-  background: linear-gradient(135deg, #16a34a, #4ade80);
-  box-shadow: 0 10px 22px -8px rgba(22, 163, 74, 0.55);
+.saldo-stat-ic.in { color: #7be0b5; background: rgba(123, 224, 181, 0.14); }
+.saldo-stat-ic.out { color: #f5a27c; background: rgba(245, 162, 124, 0.16); }
+
+.saldo-stat-label {
+  font-size: 0.75rem;
+  color: var(--hero-muted);
 }
 
-.expense .card-icon {
-  background: linear-gradient(135deg, #ef4444, #fb7185);
-  box-shadow: 0 10px 22px -8px rgba(239, 68, 68, 0.55);
-}
-
-.card-content h3 {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.card-content .amount {
-  font-size: 1.5rem;
+.saldo-stat-value {
+  font-size: 1.1rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.add-transaction-card .transaction-form {
+  display: block;
+}
+
+.card-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+/* Riwayat terbaru: daftar per hari */
+.tx-day {
+  margin: 0;
+  padding: 14px 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tx-day:first-child {
+  padding-top: 0;
+}
+
+.tx-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 -10px;
+  padding: 10px;
+  border-radius: 14px;
   color: var(--text);
-  letter-spacing: -0.02em;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.tx-item:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.tx-ic {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kat);
+  background: color-mix(in srgb, var(--kat) 14%, transparent);
+}
+
+.tx-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tx-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tx-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.tx-amt {
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tx-amt.in {
+  color: var(--success-color);
 }
 
 /* Pill tren perbandingan bulan */
@@ -301,21 +475,6 @@ body {
   background: rgba(107, 114, 128, 0.14);
 }
 
-/* ---------------- Grid kartu ---------------- */
-.dashboard-charts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -326,14 +485,10 @@ body {
   transition: box-shadow 0.25s ease;
 }
 
-.card:hover {
-  box-shadow: var(--shadow-lg);
-}
-
 .card-header {
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
+  border-bottom: 0;
+  padding: 22px 24px 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -342,7 +497,7 @@ body {
 
 .card-header h2 {
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text);
   margin: 0;
   letter-spacing: -0.01em;
@@ -359,13 +514,13 @@ body {
 }
 
 .card-body {
-  padding: 20px;
+  padding: 18px 24px 24px;
 }
 
 /* Wadah grafik dengan tinggi terkunci */
 .chart-wrap {
   position: relative;
-  height: 280px;
+  height: 260px;
 }
 
 /* Empty state */
@@ -442,46 +597,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------------- Kartu perbandingan ---------------- */
-.comparison-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.comparison-item h4 {
-  font-size: 1rem;
-  margin-bottom: 14px;
-  color: var(--text);
-  padding-bottom: 6px;
-  border-bottom: 2px solid var(--primary-color);
-}
-
-.comparison-details {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
-}
-
-.detail-item .label {
-  color: var(--text-muted);
-}
-
-.detail-item.total {
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border);
-  font-weight: 700;
-}
-
 .income-text {
   color: var(--success-color);
 }
@@ -526,6 +641,11 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
 .form-control:focus {
   border-color: var(--primary-color);
   outline: none;
@@ -545,7 +665,6 @@ body {
 .btn-primary {
   background: var(--primary-gradient);
   color: #fff;
-  box-shadow: 0 10px 22px -10px rgba(67, 97, 238, 0.65);
 }
 
 .btn-primary:hover {
@@ -571,10 +690,6 @@ body {
 }
 
 /* ---------------- Tabel ---------------- */
-.transaction-history .card {
-  margin-bottom: 26px;
-}
-
 /* Tautan "Lihat semua" di bawah pratinjau riwayat */
 .lihat-semua {
   display: flex;
@@ -1271,7 +1386,7 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 12px 24px -10px rgba(67, 97, 238, 0.6);
+    box-shadow: 0 10px 20px -10px rgba(23, 25, 30, 0.5);
   }
 
   .mnav-scrim {
@@ -1369,8 +1484,8 @@ body {
 .scan-struk {
   margin-bottom: 10px;
   padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: 1.5px dashed color-mix(in srgb, var(--primary-color) 40%, transparent);
+  border-radius: 16px;
   background: var(--primary-soft);
 }
 
@@ -1474,7 +1589,99 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .transaction-amount:focus-within { outline: 2px solid var(--primary-color); outline-offset: 2px; }
-.transaction-save { min-height: 48px; border-radius: 12px; }
+.transaction-save { min-height: 52px; border-radius: 14px; font-size: 1rem; font-weight: 800; }
+
+.transaction-fields { --tone: var(--danger-color); }
+.transaction-fields[data-tipe="pemasukan"] { --tone: var(--success-color); }
+.transaction-fields .transaction-amount-input input,
+.transaction-fields .transaction-amount-input > span { color: var(--tone); }
+.transaction-fields .transaction-save,
+.transaction-fields .transaction-save:hover { background: var(--tone); color: #fff; }
+
+/* Tanpa JS, <select> asli yang tampil; dengan JS diganti tombol & chip */
+.transaction-fields.is-enhanced .js-native {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tipe-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.tipe-toggle button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tipe-toggle button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--tone);
+  box-shadow: 0 1px 3px rgba(23, 25, 30, 0.12);
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-group-date {
+  margin-bottom: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip i {
+  color: var(--kat, var(--text-muted));
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--surface);
+}
+
+.chip[aria-pressed="true"] i {
+  color: inherit;
+}
+
+.chip-empty {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
 .transaction-fields .scan-struk-choice { margin: 0 0 16px; }
 @media (max-width: 360px) {
   .transaction-field-row { grid-template-columns: 1fr; gap: 0; }
@@ -1604,11 +1811,9 @@ body {
     margin-left: 72px;
   }
 
-  .dashboard-summary,
-  .dashboard-charts,
-  .dashboard-cards,
-  .comparison-container {
-    grid-template-columns: 1fr;
+  .dash-row,
+  .dash-row-hero {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1654,65 +1859,28 @@ body {
     display: none;
   }
 
-  /* ---- Dashboard ala kartu dompet (mengikuti mockup) ---- */
-  .dashboard-summary {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 18px;
+  .saldo-card {
+    padding: 22px;
+    gap: 20px;
   }
 
-  .summary-card {
-    gap: 12px;
-  }
-
-  .summary-card.current-balance {
-    grid-column: 1 / -1;
-    background: var(--primary-gradient);
-    border: none;
-    color: #fff;
-  }
-
-  .summary-card.current-balance .card-content h3,
-  .summary-card.current-balance .card-content .amount {
-    color: #fff;
-  }
-
-  .summary-card.current-balance .card-icon {
-    background: rgba(255, 255, 255, 0.18);
-    box-shadow: none;
-  }
-
-  .summary-card.current-balance .trend {
-    background: rgba(255, 255, 255, 0.22);
-    color: #fff;
-  }
-
-  .summary-card.income,
-  .summary-card.expense {
-    flex-direction: column;
-    align-items: flex-start;
+  .saldo-split {
     gap: 8px;
-    padding: 14px;
   }
 
-  .summary-card.income .card-icon,
-  .summary-card.expense .card-icon {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-    border-radius: 10px;
-    font-size: 0.95rem;
+  .saldo-stat {
+    padding: 12px;
+    gap: 10px;
   }
 
-  .summary-card.income .card-content h3,
-  .summary-card.expense .card-content h3 {
-    font-size: 0.7rem;
+  .saldo-stat-ic {
+    display: none;
   }
 
-  .summary-card.income .card-content .amount,
-  .summary-card.expense .card-content .amount {
-    font-size: 1.05rem;
-    overflow-wrap: anywhere;
+  .saldo-stat-value {
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow-wrap: normal;
   }
 
   /* Netralkan gutter negatif Bootstrap di HP (cegah melebar) */
@@ -1724,15 +1892,6 @@ body {
   .content .row > [class*="col-"] {
     padding-left: 0;
     padding-right: 0;
-  }
-
-  /* Blok berat disembunyikan di HP */
-  .comparison-card {
-    display: none;
-  }
-
-  .transaction-history .card.mt-4 {
-    display: none;
   }
 
   .chart-wrap {
