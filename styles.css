@@ -26,11 +26,11 @@
   --glass-border: #e6e3da;
   --border: #e6e3da;
 
-  /* Kartu saldo (selalu gelap) */
-  --hero-bg: #17191e;
+  /* Kartu dompet (hijau tua) */
+  --hero-bg: #0f5c46;
   --hero-text: #ffffff;
-  --hero-muted: #b9bcc6;
-  --hero-tile: rgba(255, 255, 255, 0.06);
+  --hero-muted: #cde5da;
+  --hero-tile: rgba(255, 255, 255, 0.1);
 
   /* Teks */
   --text: #17191e;
@@ -71,8 +71,8 @@
   --glass-border: #2c3039;
   --border: #2c3039;
 
-  --hero-bg: #252a36;
-  --hero-tile: rgba(255, 255, 255, 0.07);
+  --hero-bg: #134d3c;
+  --hero-tile: rgba(255, 255, 255, 0.08);
 
   --text: #ecedef;
   --text-muted: #9ea3ae;
@@ -235,17 +235,9 @@ body {
 }
 
 .dash-row-hero {
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-}
-
-.dash-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.dash-stack > .card {
-  margin-bottom: 0;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  align-items: stretch;
+  margin-bottom: 32px;
 }
 
 .saldo-card {
@@ -253,9 +245,11 @@ body {
   color: var(--hero-text);
   border-radius: var(--card-border-radius);
   padding: 28px;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  justify-content: space-between;
+  gap: 28px;
 }
 
 .saldo-top {
@@ -268,11 +262,9 @@ body {
 
 .saldo-label {
   margin: 0 0 10px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   color: var(--hero-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .saldo-amount {
@@ -294,26 +286,6 @@ body {
 .saldo-card .trend.bad { color: #f5a27c; background: rgba(245, 162, 124, 0.16); }
 .saldo-card .trend.flat { color: var(--hero-muted); background: var(--hero-tile); }
 
-.saldo-bar {
-  height: 10px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.saldo-bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: #f08a5d;
-}
-
-.saldo-note {
-  margin: 10px 0 0;
-  font-size: 0.82rem;
-  color: var(--hero-muted);
-}
-
 .saldo-split {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -322,33 +294,13 @@ body {
 
 .saldo-stat {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
   min-width: 0;
-  padding: 14px;
-  border-radius: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
   background: var(--hero-tile);
 }
-
-.saldo-stat > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.saldo-stat-ic {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.saldo-stat-ic.in { color: #7be0b5; background: rgba(123, 224, 181, 0.14); }
-.saldo-stat-ic.out { color: #f5a27c; background: rgba(245, 162, 124, 0.16); }
 
 .saldo-stat-label {
   font-size: 0.75rem;
@@ -357,7 +309,7 @@ body {
 
 .saldo-stat-value {
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -367,25 +319,187 @@ body {
 }
 
 .card-link {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--primary-color);
   text-decoration: none;
 }
 
-/* Riwayat terbaru: daftar per hari */
-.tx-day {
-  margin: 0;
-  padding: 14px 0 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+/* Aksi cepat 2x2 di samping kartu dompet */
+.aksi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.tx-day:first-child {
-  padding-top: 0;
+.aksi {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  min-height: 110px;
+  padding: 18px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.aksi:hover {
+  color: var(--text);
+  transform: translateY(-2px);
+  box-shadow: inset 0 0 0 1px var(--border), var(--shadow-lg);
+}
+
+.aksi > i {
+  font-size: 1.4rem;
+}
+
+.aksi-judul,
+.aksi-sub {
+  display: block;
+}
+
+.aksi-judul {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.aksi-sub {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.aksi-utama,
+.aksi-utama:hover {
+  background: var(--text);
+  color: var(--surface);
+  box-shadow: none;
+}
+
+.aksi-utama .aksi-sub {
+  color: inherit;
+  opacity: 0.72;
+}
+
+/* Bagian tanpa kartu: Catatan & Riwayat */
+.dash-section {
+  margin-bottom: 32px;
+}
+
+.dash-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dash-section-title {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.catatan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.catatan {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.catatan p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.catatan-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+
+.catatan-ic.warm { color: var(--danger-color); background: color-mix(in srgb, var(--danger-color) 12%, transparent); }
+.catatan-ic.good { color: var(--success-color); background: color-mix(in srgb, var(--success-color) 12%, transparent); }
+
+.sapa-tgl {
+  margin: 0 0 2px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Riwayat: daftar per hari dengan total harian */
+.tx-day {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 0 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.dash-section-head + .tx-day {
+  padding-top: 4px;
+}
+
+/* Form tambah di layar lebar (native <dialog>) */
+.tambah-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: 88vh;
+  margin: auto; /* reset global * { margin: 0 } membuang posisi tengah bawaan */
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.tambah-dialog::backdrop {
+  background: rgba(10, 14, 22, 0.45);
+}
+
+.tambah-dialog > .add-transaction-card {
+  padding: 18px 22px 22px;
+}
+
+.tambah-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.tambah-dialog-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
 .tx-item {
@@ -515,12 +629,6 @@ body {
 
 .card-body {
   padding: 18px 24px 24px;
-}
-
-/* Wadah grafik dengan tinggi terkunci */
-.chart-wrap {
-  position: relative;
-  height: 260px;
 }
 
 /* Empty state */
@@ -1860,8 +1968,13 @@ body {
   }
 
   .saldo-card {
+    min-height: 0;
     padding: 22px;
-    gap: 20px;
+    gap: 22px;
+  }
+
+  .dash-row-hero {
+    margin-bottom: 24px;
   }
 
   .saldo-split {
@@ -1870,11 +1983,11 @@ body {
 
   .saldo-stat {
     padding: 12px;
-    gap: 10px;
   }
 
-  .saldo-stat-ic {
-    display: none;
+  .aksi {
+    min-height: 96px;
+    padding: 16px;
   }
 
   .saldo-stat-value {
@@ -1892,10 +2005,6 @@ body {
   .content .row > [class*="col-"] {
     padding-left: 0;
     padding-right: 0;
-  }
-
-  .chart-wrap {
-    height: 210px;
   }
 
   /* ---- Tabel transaksi -> daftar bertumpuk ---- */

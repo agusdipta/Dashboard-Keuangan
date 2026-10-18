@@ -84,44 +84,37 @@ $saldo_akhir_ini  = $saldo_awal + $total_pemasukan_ini - $total_pengeluaran_ini;
 $saldo_akhir_lalu = $saldo_awal + $total_pemasukan_lalu - $total_pengeluaran_lalu;
 
 // --- Data dashboard (dihitung dari transaksi bulan ini) ---
-$per_kategori = [];
-foreach ($tx_ini as $r) {
-    if ($r['tipe'] !== 'pengeluaran') {
-        continue;
-    }
-    $nama = $r['kategori_nama'] ?: 'Tanpa Kategori';
-    if (!isset($per_kategori[$nama])) {
-        $per_kategori[$nama] = ['total' => 0.0, 'warna' => $r['kategori_warna'] ?: '#9e9e9e', 'ikon' => $r['kategori_ikon'] ?: 'fa-tag'];
-    }
-    $per_kategori[$nama]['total'] += (float) $r['jumlah'];
-}
-uasort($per_kategori, fn($a, $b) => $b['total'] <=> $a['total']);
-
-// Porsi pemasukan yang sudah terpakai (bar di kartu saldo)
-if ($total_pemasukan_ini > 0) {
-    $terpakai = min(100, $total_pengeluaran_ini / $total_pemasukan_ini * 100);
-    $terpakai_teks = number_format($terpakai, 0) . '% pemasukan bulan ini sudah terpakai';
-} else {
-    $terpakai = $total_pengeluaran_ini > 0 ? 100 : 0;
-    $terpakai_teks = 'Belum ada pemasukan bulan ini';
-}
-
 $NAMA_BULAN = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-$label_bulan_ini = $NAMA_BULAN[$bulan_ini] . ' ' . $tahun_ini;
+$NAMA_HARI  = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+$nama_depan = strtok(trim($USER['nama_lengkap']), ' ') ?: 'kamu';
+$hari_ini_teks = $NAMA_HARI[(int) date('w')] . ', ' . date('j') . ' ' . $NAMA_BULAN[$bulan_ini];
 
-$tren_urut = $tx_ini;
-usort($tren_urut, fn($a, $b) => strcmp($a['tanggal'], $b['tanggal']) ?: ($a['id'] <=> $b['id']));
-$tren_label = [];
-$tren_nilai = [];
-$run = (float) $saldo_awal;
-foreach ($tren_urut as $r) {
-    $run += $r['tipe'] === 'pemasukan' ? (float) $r['jumlah'] : -(float) $r['jumlah'];
-    $key = date('Y-m-d', strtotime($r['tanggal']));
-    $tren_label[$key] = date('d M', strtotime($r['tanggal']));
-    $tren_nilai[$key] = $run;
+// Catatan bulan ini: kategori terbesar, porsi terpakai, transaksi tanpa kategori
+$per_kategori = [];
+$tanpa_kategori = 0;
+foreach ($tx_ini as $r) {
+    if (!$r['kategori_id']) {
+        $tanpa_kategori++;
+    }
+    if ($r['tipe'] === 'pengeluaran') {
+        $nama = $r['kategori_nama'] ?: 'Tanpa kategori';
+        $per_kategori[$nama] = ($per_kategori[$nama] ?? 0) + (float) $r['jumlah'];
+    }
 }
-$tren_label = array_values($tren_label);
-$tren_nilai = array_values($tren_nilai);
+arsort($per_kategori);
+$sisa_hari = (int) date('t') - (int) date('j');
+$rupiah = fn($n) => 'Rp ' . number_format($n, 0, ',', '.');
+
+if ($per_kategori) {
+    $kat_terbesar = array_key_first($per_kategori);
+    $catatan_kategori = $kat_terbesar . ' paling banyak: ' . $rupiah($per_kategori[$kat_terbesar])
+        . ' (' . number_format($per_kategori[$kat_terbesar] / $total_pengeluaran_ini * 100, 0) . '%)';
+} else {
+    $catatan_kategori = 'Belum ada pengeluaran bulan ini';
+}
+$catatan_terpakai = $total_pemasukan_ini > 0
+    ? 'Baru ' . number_format(min(100, $total_pengeluaran_ini / $total_pemasukan_ini * 100), 0) . "% pemasukan terpakai. Sisa $sisa_hari hari."
+    : "Belum ada pemasukan bulan ini. Sisa $sisa_hari hari.";
 
 $daftar_kategori = ambil_kategori($koneksi, $UID);
 $flash = get_flash();
@@ -132,15 +125,19 @@ $rentang_ini = 'tanggal_mulai=' . date('Y-m-01') . '&tanggal_akhir=' . date('Y-m
 $riwayat_hari = [];
 foreach (array_slice($tx_ini, 0, RIWAYAT_MAKS) as $r) {
     $tgl = date('Y-m-d', strtotime($r['tanggal']));
-    $riwayat_hari[$tgl][] = $r;
+    $riwayat_hari[$tgl]['rows'][] = $r;
+    $riwayat_hari[$tgl]['total'] = ($riwayat_hari[$tgl]['total'] ?? 0)
+        + ($r['tipe'] === 'pemasukan' ? 1 : -1) * (float) $r['jumlah'];
 }
 function label_hari(string $tgl): string
 {
-    $label = date('j', strtotime($tgl)) . ' ' . $GLOBALS['NAMA_BULAN'][(int) date('n', strtotime($tgl))];
     if ($tgl === date('Y-m-d')) {
-        return "Hari ini · $label";
+        return 'Hari ini';
     }
-    return $tgl === date('Y-m-d', strtotime('-1 day')) ? "Kemarin · $label" : $label;
+    if ($tgl === date('Y-m-d', strtotime('-1 day'))) {
+        return 'Kemarin';
+    }
+    return date('j', strtotime($tgl)) . ' ' . $GLOBALS['NAMA_BULAN'][(int) date('n', strtotime($tgl))];
 }
 ?>
 
@@ -172,7 +169,8 @@ function label_hari(string $tgl): string
         <main class="content">
             <header class="content-header">
                 <?= topbar_user($USER) ?>
-                <h1>Ringkasan <?= e($label_bulan_ini) ?></h1>
+                <p class="sapa-tgl"><?= e($hari_ini_teks) ?></p>
+                <h1>Halo, <?= e($nama_depan) ?></h1>
             </header>
 
             <?php if ($flash): ?>
@@ -183,133 +181,111 @@ function label_hari(string $tgl): string
             <?php endif; ?>
 
             <div class="dash-row dash-row-hero">
-                <div class="dash-stack">
-                    <section class="saldo-card" aria-label="Saldo">
-                        <div class="saldo-top">
-                            <div>
-                                <h2 class="saldo-label">Saldo saat ini</h2>
-                                <p class="saldo-amount count-up" data-value="<?= (float) $saldo_akhir_ini ?>">Rp <?= number_format($saldo_akhir_ini, 0, ',', '.') ?></p>
-                            </div>
-                            <?= trend_pill((float) $saldo_akhir_ini, (float) $saldo_akhir_lalu) ?>
-                        </div>
+                <section class="saldo-card" aria-label="Saldo">
+                    <div class="saldo-top">
                         <div>
-                            <div class="saldo-bar"><span style="width: <?= round($terpakai, 1) ?>%"></span></div>
-                            <p class="saldo-note"><?= e($terpakai_teks) ?></p>
+                            <h2 class="saldo-label">Saldo kamu</h2>
+                            <p class="saldo-amount count-up" data-value="<?= (float) $saldo_akhir_ini ?>"><?= $rupiah($saldo_akhir_ini) ?></p>
                         </div>
-                        <div class="saldo-split">
-                            <div class="saldo-stat">
-                                <span class="saldo-stat-ic in"><i class="fas fa-arrow-down" aria-hidden="true"></i></span>
-                                <div>
-                                    <span class="saldo-stat-label">Pemasukan</span>
-                                    <span class="saldo-stat-value count-up" data-value="<?= (float) $total_pemasukan_ini ?>">Rp <?= number_format($total_pemasukan_ini, 0, ',', '.') ?></span>
-                                </div>
-                            </div>
-                            <div class="saldo-stat">
-                                <span class="saldo-stat-ic out"><i class="fas fa-arrow-up" aria-hidden="true"></i></span>
-                                <div>
-                                    <span class="saldo-stat-label">Pengeluaran</span>
-                                    <span class="saldo-stat-value count-up" data-value="<?= (float) $total_pengeluaran_ini ?>">Rp <?= number_format($total_pengeluaran_ini, 0, ',', '.') ?></span>
-                                </div>
-                            </div>
+                        <?= trend_pill((float) $saldo_akhir_ini, (float) $saldo_akhir_lalu) ?>
+                    </div>
+                    <div class="saldo-split">
+                        <div class="saldo-stat">
+                            <span class="saldo-stat-label">Masuk bulan ini</span>
+                            <span class="saldo-stat-value count-up" data-value="<?= (float) $total_pemasukan_ini ?>"><?= $rupiah($total_pemasukan_ini) ?></span>
                         </div>
-                    </section>
-                    <div class="card">
-                        <div class="card-header">
-                            <h2>Tren saldo</h2>
-                            <span class="card-sub"><?= e($label_bulan_ini) ?></span>
-                        </div>
-                        <div class="card-body">
-                            <?php if (count($tren_nilai) > 0): ?>
-                                <div class="chart-wrap"><canvas id="trenChart"></canvas></div>
-                            <?php else: ?>
-                                <p class="empty-state"><i class="fas fa-chart-line"></i> Belum ada transaksi bulan ini.</p>
-                            <?php endif; ?>
+                        <div class="saldo-stat">
+                            <span class="saldo-stat-label">Keluar bulan ini</span>
+                            <span class="saldo-stat-value count-up" data-value="<?= (float) $total_pengeluaran_ini ?>"><?= $rupiah($total_pengeluaran_ini) ?></span>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <div class="card add-transaction-card" id="tambah">
-                    <div class="card-header">
-                        <h2>Catat transaksi</h2>
-                    </div>
-                    <div class="card-body">
-                        <form action="tambah.php" method="post" class="transaction-form">
-                            <?= csrf_field() ?>
-                            <?php require __DIR__ . '/partial_scan_struk.php'; ?>
-                            <?php $transaction_prefix = ''; $transaction_categories = $daftar_kategori; require __DIR__ . '/partial_transaction_fields.php'; ?>
-                        </form>
-                    </div>
+                <div class="aksi-grid">
+                    <button type="button" class="aksi aksi-utama" data-buka-tambah="scan">
+                        <i class="fas fa-camera" aria-hidden="true"></i>
+                        <span><span class="aksi-judul">Scan struk</span><span class="aksi-sub">Total terisi otomatis</span></span>
+                    </button>
+                    <button type="button" class="aksi" data-buka-tambah="manual">
+                        <i class="fas fa-pen" aria-hidden="true"></i>
+                        <span><span class="aksi-judul">Input manual</span><span class="aksi-sub">Pemasukan / pengeluaran</span></span>
+                    </button>
+                    <a class="aksi" href="laporan.php">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i>
+                        <span><span class="aksi-judul">Laporan</span><span class="aksi-sub">Per kategori &amp; periode</span></span>
+                    </a>
+                    <button type="button" class="aksi" id="exportCurrentMonth">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        <span><span class="aksi-judul">Ekspor PDF</span><span class="aksi-sub">Laporan bulan ini</span></span>
+                    </button>
                 </div>
             </div>
 
-            <div class="dash-row">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Pengeluaran per kategori</h2>
-                        <a class="card-link" href="laporan.php">Laporan</a>
+            <section class="dash-section" aria-labelledby="catatanJudul">
+                <h2 id="catatanJudul" class="dash-section-title">Catatan bulan ini</h2>
+                <div class="catatan-grid">
+                    <div class="catatan">
+                        <span class="catatan-ic warm"><i class="fas fa-bag-shopping" aria-hidden="true"></i></span>
+                        <p><?= e($catatan_kategori) ?></p>
                     </div>
-                    <div class="card-body">
-                        <?php if ($per_kategori): ?>
-                            <div class="kat-list">
-                                <?php foreach ($per_kategori as $nama => $r):
-                                    $persen = $total_pengeluaran_ini > 0 ? $r['total'] / $total_pengeluaran_ini * 100 : 0;
-                                    $pct_txt = $persen >= 0.5 ? number_format($persen, 0) . '%' : ($persen > 0 ? '<1%' : '0%');
-                                ?>
-                                    <div class="kat-item">
-                                        <div class="kat-item-head">
-                                            <span class="kategori-chip" style="--kat:<?= e($r['warna']) ?>"><i class="fas <?= e($r['ikon']) ?>"></i> <?= e($nama) ?></span>
-                                            <span class="kat-item-amt">Rp <?= number_format($r['total'], 0, ',', '.') ?></span>
-                                        </div>
-                                        <div class="kat-item-track">
-                                            <div class="kat-item-bar"><span style="width: <?= max(2, round($persen, 1)) ?>%; background: <?= e($r['warna']) ?>;"></span></div>
-                                            <span class="kat-item-pct"><?= $pct_txt ?></span>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
+                    <div class="catatan">
+                        <span class="catatan-ic good"><i class="fas fa-check" aria-hidden="true"></i></span>
+                        <p><?= e($catatan_terpakai) ?></p>
+                    </div>
+                    <div class="catatan">
+                        <span class="catatan-ic"><i class="fas fa-tag" aria-hidden="true"></i></span>
+                        <?php if ($tanpa_kategori > 0): ?>
+                            <p><?= $tanpa_kategori ?> transaksi belum berkategori. <a href="<?= e('transaksi.php?' . $rentang_ini) ?>">Rapikan</a></p>
                         <?php else: ?>
-                            <p class="empty-state"><i class="fas fa-chart-pie"></i> Belum ada pengeluaran bulan ini.</p>
+                            <p>Rata-rata pengeluaran <?= $rupiah($total_pengeluaran_ini / (int) date('j')) ?> per hari.</p>
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Transaksi terbaru</h2>
-                        <div class="card-actions">
-                            <button class="btn btn-sm btn-outline-primary" id="exportCurrentMonth">
-                                <i class="fas fa-download"></i> Ekspor
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <?php if (!$riwayat_hari): ?>
-                            <p class="empty-state"><i class="fas fa-receipt"></i> Belum ada transaksi bulan ini.</p>
-                        <?php endif; ?>
-                        <?php foreach ($riwayat_hari as $tgl => $rows): ?>
-                            <h3 class="tx-day"><?= e(label_hari($tgl)) ?></h3>
-                            <?php foreach ($rows as $r): $masuk = $r['tipe'] === 'pemasukan'; ?>
-                                <a class="tx-item" href="edit.php?id=<?= (int) $r['id'] ?>&amp;kembali=index.php" aria-label="Edit <?= e($r['keterangan']) ?>">
-                                    <span class="tx-ic" style="--kat: <?= e($r['kategori_warna'] ?: ($masuk ? 'var(--success-color)' : 'var(--text-muted)')) ?>">
-                                        <i class="fas <?= e($r['kategori_ikon'] ?: ($masuk ? 'fa-arrow-down' : 'fa-tag')) ?>" aria-hidden="true"></i>
-                                    </span>
-                                    <span class="tx-main">
-                                        <span class="tx-title"><?= e($r['keterangan']) ?></span>
-                                        <span class="tx-sub"><?= e($r['kategori_nama'] ?: 'Tanpa kategori') ?></span>
-                                    </span>
-                                    <span class="tx-amt<?= $masuk ? ' in' : '' ?>"><?= $masuk ? '+' : '−' ?> Rp <?= number_format($r['jumlah'], 0, ',', '.') ?></span>
-                                </a>
-                            <?php endforeach; ?>
-                        <?php endforeach; ?>
-                        <?php if ($tx_ini): ?>
-                            <a class="lihat-semua" href="<?= e('transaksi.php?' . $rentang_ini) ?>">
-                                Lihat semua (<?= count($tx_ini) ?> transaksi) <i class="fas fa-arrow-right"></i>
-                            </a>
-                        <?php endif; ?>
-                    </div>
+            </section>
+
+            <section class="dash-section" aria-labelledby="riwayatJudul">
+                <div class="dash-section-head">
+                    <h2 id="riwayatJudul" class="dash-section-title">Riwayat</h2>
+                    <?php if ($tx_ini): ?>
+                        <a class="card-link" href="<?= e('transaksi.php?' . $rentang_ini) ?>">Lihat semua (<?= count($tx_ini) ?>)</a>
+                    <?php endif; ?>
                 </div>
-            </div>
+                <?php if (!$riwayat_hari): ?>
+                    <p class="empty-state"><i class="fas fa-receipt"></i> Belum ada transaksi bulan ini.</p>
+                <?php endif; ?>
+                <?php foreach ($riwayat_hari as $tgl => $hari): ?>
+                    <h3 class="tx-day"><span><?= e(label_hari($tgl)) ?></span><span><?= $hari['total'] >= 0 ? '+' : '−' ?> <?= $rupiah(abs($hari['total'])) ?></span></h3>
+                    <?php foreach ($hari['rows'] as $r): $masuk = $r['tipe'] === 'pemasukan'; ?>
+                        <a class="tx-item" href="edit.php?id=<?= (int) $r['id'] ?>&amp;kembali=index.php" aria-label="Edit <?= e($r['keterangan']) ?>">
+                            <span class="tx-ic" style="--kat: <?= e($r['kategori_warna'] ?: ($masuk ? 'var(--success-color)' : 'var(--text-muted)')) ?>">
+                                <i class="fas <?= e($r['kategori_ikon'] ?: ($masuk ? 'fa-arrow-down' : 'fa-tag')) ?>" aria-hidden="true"></i>
+                            </span>
+                            <span class="tx-main">
+                                <span class="tx-title"><?= e($r['keterangan']) ?></span>
+                                <span class="tx-sub"><?= e($r['kategori_nama'] ?: 'Tanpa kategori') ?></span>
+                            </span>
+                            <span class="tx-amt<?= $masuk ? ' in' : '' ?>"><?= $masuk ? '+' : '−' ?> <?= $rupiah($r['jumlah']) ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            </section>
         </main>
     </div>
+
+    <!-- Form tambah untuk layar lebar; di HP aksi cepat membuka bottom sheet -->
+    <dialog class="tambah-dialog" id="dlgTambah" aria-labelledby="dlgTambahJudul">
+        <div class="add-transaction-card">
+            <div class="tambah-dialog-head">
+                <h2 id="dlgTambahJudul">Tambah transaksi</h2>
+                <button type="button" class="sheet-close" data-tutup aria-label="Tutup">&times;</button>
+            </div>
+            <form action="tambah.php" method="post" class="transaction-form">
+                <?= csrf_field() ?>
+                <?php require __DIR__ . '/partial_scan_struk.php'; ?>
+                <?php $transaction_prefix = ''; $transaction_categories = $daftar_kategori; require __DIR__ . '/partial_transaction_fields.php'; ?>
+            </form>
+        </div>
+    </dialog>
 
     <!-- Form untuk ekspor PDF (tersembunyi) -->
     <form id="pdfFormCurrentMonth" action="generate_pdf_html.php" method="post" target="_blank" style="display: none;">
@@ -319,7 +295,6 @@ function label_hari(string $tgl): string
     </form>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js?v=<?= filemtime(__DIR__ . '/script.js') ?>"></script>
     <script>
         // Saring pilihan kategori sesuai tipe transaksi
@@ -351,50 +326,25 @@ function label_hari(string $tgl): string
             document.getElementById('pdfFormCurrentMonth').submit();
         });
 
-        // ---- Grafik Dashboard ----
+        // Aksi cepat Scan / Input manual: HP memakai bottom sheet, layar lebar memakai <dialog>
         (function () {
-            const styles = getComputedStyle(document.documentElement);
-            const accent = (styles.getPropertyValue('--primary-color') || '#4361ee').trim();
-            const rupiah = (v) => 'Rp ' + Number(v).toLocaleString('id-ID');
-            const ringkas = new Intl.NumberFormat('id-ID', { notation: 'compact' });
-            if (window.Chart) {
-                Chart.defaults.color = (styles.getPropertyValue('--text-muted') || '#6b7280').trim();
-                Chart.defaults.borderColor = (styles.getPropertyValue('--border') || '#e6e9f2').trim();
+            const dlg = document.getElementById('dlgTambah');
+            const hp = window.matchMedia('(max-width: 768px)');
+            function buka(mode) {
+                let wadah = dlg;
+                if (hp.matches) {
+                    document.getElementById('mnavFab').click();
+                    wadah = document.getElementById('sheetTambah');
+                } else {
+                    dlg.showModal();
+                    dlg.querySelector('form').dispatchEvent(new Event('transaction:open'));
+                }
+                const tombol = wadah.querySelector(mode === 'scan' ? '[data-scan-camera]' : '[data-transaction-manual]');
+                if (tombol && !tombol.hidden) tombol.click();
             }
-
-            const trenEl = document.getElementById('trenChart');
-            if (trenEl) {
-                new Chart(trenEl, {
-                    type: 'line',
-                    data: {
-                        labels: <?= json_encode($tren_label, JSON_UNESCAPED_UNICODE) ?>,
-                        datasets: [{
-                            label: 'Saldo',
-                            data: <?= json_encode(array_map(fn($v) => round($v, 2), $tren_nilai)) ?>,
-                            borderColor: accent,
-                            backgroundColor: accent + '22',
-                            fill: true,
-                            tension: 0.35,
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                            pointBackgroundColor: accent
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { callbacks: { label: (c) => rupiah(c.parsed.y) } }
-                        },
-                        scales: {
-                            x: { grid: { display: false } },
-                            y: { ticks: { callback: (v) => ringkas.format(v) } }
-                        }
-                    }
-                });
-            }
+            document.querySelectorAll('[data-buka-tambah]').forEach(b => b.addEventListener('click', () => buka(b.dataset.bukaTambah)));
+            dlg.querySelector('[data-tutup]').addEventListener('click', () => dlg.close());
+            dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
         })();
     </script>
     <?php require __DIR__ . '/partial_mobilenav.php'; ?>
